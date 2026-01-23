@@ -15,7 +15,7 @@ from pybricks.media.ev3dev import SoundFile, ImageFile
 # Create your objects here.
 ev3 = EV3Brick()
 left_motor = Motor(Port.A)
-right_motor = Motor()
+right_motor = Motor(Port.B)
 gyro_sensor = GyroSensor(Port.S1)
 circumference = 20.9
 axle_track = 144
