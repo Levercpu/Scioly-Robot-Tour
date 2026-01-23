@@ -58,27 +58,19 @@ def drive_forward(distance,maxspeed,minspeed) :
     gyro_sensor.reset_angle(0)
     left_motor.reset_angle(0)
     right_motor.reset_angle(0)
-    speed = floor((maxspeed-minspeed)*(((left_motor.angle()+right_motor.angle())/2 / (distance * circumference))^9)+minspeed)
-    while (left_motor.angle() + right_motor.angle())/2 < distance * circumference - 30 :
-        left_motor.run(speed+gyro_sensor.angle()*20)
-        right_motor.run(speed-gyro_sensor.angle()*20)
+    # speed = maxspeed
+    speed = floor((maxspeed-minspeed)*(((left_motor.angle()+right_motor.angle())/2 / (distance * circumference))**9))+minspeed
+    while abs((left_motor.angle() + right_motor.angle())/2) < abs(distance) * circumference - 30 :
+        left_motor.run(speed-gyro_sensor.angle()*20)
+        right_motor.run(speed+gyro_sensor.angle()*20)
     left_motor.stop()
     right_motor.stop()
     wait(0.1)
 def drive_backward(distance,maxspeed,minspeed) :
-    gyro_sensor.reset_angle(0)
-    left_motor.reset_angle(0)
-    right_motor.reset_angle(0)
-    speed = ((maxspeed-minspeed)*(((left_motor.angle()+right_motor.angle())/2 / (distance * circumference))^9)+minspeed)
-    while (left_motor.angle() + right_motor.angle())/2 < distance * circumference :
-        left_motor.run(-speed-gyro_sensor.angle()*20)
-        right_motor.run(-speed+gyro_sensor.angle()*20)
-    left_motor.stop()
-    right_motor.stop()
-    wait(0.1)
+    drive_forward(-distance,-maxspeed,-minspeed)
 
 
-drive_forward(200,400,100)
+drive_backward(50,400,200)
 while (True):
     print(gyro_sensor.angle())
     wait(1000)
