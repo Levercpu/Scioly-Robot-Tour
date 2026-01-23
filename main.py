@@ -1,4 +1,5 @@
 #!/usr/bin/env pybricks-micropython
+from math import copysign, floor
 from pybricks.hubs import EV3Brick
 from pybricks.ev3devices import (Motor, TouchSensor, ColorSensor,
                                  InfraredSensor, UltrasonicSensor, GyroSensor)
@@ -19,86 +20,48 @@ right_motor = Motor(Port.B)
 gyro_sensor = GyroSensor(Port.S1)
 circumference = 20.9
 axle_track = 144
+turn_speed = 200
 
 
 
 # Write your program here.
 
 
-def turn_180(speed) :
+
+
+def turn(degrees,speed) :
     gyro_sensor.reset_angle(0)
     initial_angle = gyro_sensor.angle()
-    while abs(gyro_sensor.angle() - initial_angle) <= 170 :
-        left_motor.run(speed)
-        right_motor.run(-speed)
+    while abs(gyro_sensor.angle() - initial_angle) <= abs(degrees)-15:
+        left_motor.run(-speed * copysign(1,(gyro_sensor.angle()-initial_angle)-degrees))
+        right_motor.run(speed * copysign(1,(gyro_sensor.angle()-initial_angle)-degrees))
+    while gyro_sensor.angle()-initial_angle != degrees :
+        left_motor.run((-speed/7) * copysign(1,(gyro_sensor.angle()-initial_angle)-degrees))
+        right_motor.run((speed/7) * copysign(1,(gyro_sensor.angle()-initial_angle)-degrees))
+    wait(100)
+    while gyro_sensor.angle()-initial_angle != degrees :
+        left_motor.run((-speed/7) * copysign(1,(gyro_sensor.angle()-initial_angle)-degrees))
+        right_motor.run((speed/7) * copysign(1,(gyro_sensor.angle()-initial_angle)-degrees))
     left_motor.stop()
     right_motor.stop()
-    if gyro_sensor.angle() > 180 :
-        while gyro_sensor.angle() >= 181 :
-            left_motor.run(-speed/25)
-            right_motor.run(speed/25)
-        left_motor.stop()
-        right_motor.stop()
-    elif gyro_sensor.angle() < 180 :
-        while gyro_sensor.angle() <= 179 :
-            left_motor.run(speed/20)
-            right_motor.run(-speed/20)
-        left_motor.stop()
-        right_motor.stop()
     wait(0.1)
 
-def turn_left(degrees,speed) :
-    gyro_sensor.reset_angle(0)
-    initial_angle = gyro_sensor.angle()
-    while abs(gyro_sensor.angle() - initial_angle) <=  -(degrees - 15):
-        left_motor.run(-speed)
-        right_motor.run(speed)
-    left_motor.stop()
-    right_motor.stop()
-    if (-gyro_sensor.angle() > degrees) :
-        while gyro_sensor.angle() <= -degrees - 1 :
-            left_motor.run(speed/25)
-            right_motor.run(-speed/25)
-        left_motor.stop()
-        right_motor.stop()
-    elif (-gyro_sensor.angle() < degrees) :
-        while gyro_sensor.angle() >= -degrees + 1 :
-            left_motor.run(-speed/25)
-            right_motor.run(speed/25)
-        left_motor.stop()
-        right_motor.stop()
-    wait(0.1)
+def turn_left() :
+    turn(-90,turn_speed)
+def turn_right() :
+    turn(90,turn_speed)
 
-def turn_right(degrees,speed) :
-    gyro_sensor.reset_angle(0)
-    initial_angle = gyro_sensor.angle()
-    while abs(gyro_sensor.angle() - initial_angle) <= degrees - 15:
-        left_motor.run(speed)
-        right_motor.run(-speed)
-    left_motor.stop()
-    right_motor.stop()
-    if (gyro_sensor.angle() > degrees) :
-        while gyro_sensor.angle() <= degrees + 1 :
-            left_motor.run(-speed/25)
-            right_motor.run(speed/25)
-        left_motor.stop()
-        right_motor.stop()
-    elif (gyro_sensor.angle() < degrees) :
-        while gyro_sensor.angle() >= degrees - 1 :
-            left_motor.run(2)
-            right_motor.run(-2)
-        left_motor.stop()
-        right_motor.stop()
-    wait(0.1)
+def turn_180() :
+    turn(180,turn_speed)
 
 def drive_forward(distance,maxspeed,minspeed) :
     gyro_sensor.reset_angle(0)
     left_motor.reset_angle(0)
     right_motor.reset_angle(0)
-    speed = (maxspeed-minspeed)*(((left_motor.angle()+right_motor.angle())/2 / (distance * circumference))^9)+minspeed
+    speed = floor((maxspeed-minspeed)*(((left_motor.angle()+right_motor.angle())/2 / (distance * circumference))^9)+minspeed)
     while (left_motor.angle() + right_motor.angle())/2 < distance * circumference - 30 :
-        left_motor.run(speed+gyro_sensor.angle*20)
-        right_motor.run(speed-gyro_sensor.angle*20)
+        left_motor.run(speed+gyro_sensor.angle()*20)
+        right_motor.run(speed-gyro_sensor.angle()*20)
     left_motor.stop()
     right_motor.stop()
     wait(0.1)
@@ -108,15 +71,14 @@ def drive_backward(distance,maxspeed,minspeed) :
     right_motor.reset_angle(0)
     speed = ((maxspeed-minspeed)*(((left_motor.angle()+right_motor.angle())/2 / (distance * circumference))^9)+minspeed)
     while (left_motor.angle() + right_motor.angle())/2 < distance * circumference :
-        left_motor.run(-speed-gyro_sensor.angle*20)
-        right_motor.run(-speed+gyro_sensor.angle*20)
+        left_motor.run(-speed-gyro_sensor.angle()*20)
+        right_motor.run(-speed+gyro_sensor.angle()*20)
     left_motor.stop()
     right_motor.stop()
     wait(0.1)
 
 
-drive_forward(50,50)
-drive_backward(50,50)
-turn_right(90,50)
-turn_left(90,50)
-turn_180(50)
+drive_forward(200,400,100)
+while (True):
+    print(gyro_sensor.angle())
+    wait(1000)
