@@ -1,4 +1,5 @@
 #!/usr/bin/env pybricks-micropython
+from sys import exit
 from math import copysign, floor
 from pybricks.hubs import EV3Brick
 from pybricks.ev3devices import Motor, UltrasonicSensor, GyroSensor
@@ -19,6 +20,7 @@ ev3 = EV3Brick()
 left_motor = Motor(Port.A)
 right_motor = Motor(Port.B)
 gyro_sensor = GyroSensor(Port.S1)
+ultrasonic_sensor = UltrasonicSensor(Port.S4)
 
 #constants
 
@@ -53,9 +55,7 @@ def align_angle(target_angle):
 
 def turn(degrees, speed):
     gyro_sensor.reset_angle(0)
-    
-    initial_angle = gyro_sensor.angle()
-    
+        
     while abs(gyro_sensor.angle()) <= abs(degrees)-15:
         left_motor.run(-speed * sign(gyro_sensor.angle() - degrees))
         right_motor.run(speed * sign(gyro_sensor.angle() - degrees))
@@ -84,19 +84,19 @@ def drive(distance, speed):
 
     # use formula for smooth acceleration and deceleration
     scaling_factor = 1 - ((2 * current_pos - sign) ** 6)
-    speed = (sign * 2/3 * speed * scaling_factor) + sign * speed # 2/3 * speed = range
+    calc_speed = (sign * 2/3 * speed * scaling_factor) + sign * speed # 2/3 * speed = range
 
     while abs((left_motor.angle() + right_motor.angle()) / 2) < abs(distance) * wheel_circum - 30: # constant at the end is used to offset error
         current_distance = (left_motor.angle() + right_motor.angle()) / 2
         if (current_distance < 209):
-            left_motor.run(speed - gyro_sensor.angle() * 5)
-            right_motor.run(speed + gyro_sensor.angle()*5)
+            left_motor.run(calc_speed - gyro_sensor.angle() * 5)
+            right_motor.run(calc_speed + gyro_sensor.angle() * 5)
         elif (current_distance > (distance - 10) * 20.9):
-            left_motor.run(speed - gyro_sensor.angle() * 5)
-            right_motor.run(speed + gyro_sensor.angle() * 5)
+            left_motor.run(calc_speed - gyro_sensor.angle() * 5)
+            right_motor.run(calc_speed + gyro_sensor.angle() * 5)
         else:
-            left_motor.run(5/3 * speed - gyro_sensor.angle() * 5)
-            right_motor.run(5/3 * speed + gyro_sensor.angle() * 5)
+            left_motor.run(5/3 * calc_speed - gyro_sensor.angle() * 5)
+            right_motor.run(5/3 * calc_speed + gyro_sensor.angle() * 5)
    
     left_motor.hold()
     right_motor.hold()
@@ -107,8 +107,6 @@ def drive(distance, speed):
 def square1(speed):
     gyro_sensor.reset_angle(0)
 
-    initial_angle = gyro_sensor.angle()
-
     drive(50, robot_speed)
     turn(90, robot_speed)
     drive(50, robot_speed)
@@ -118,12 +116,11 @@ def square1(speed):
     drive(50, robot_speed)
     turn(90, robot_speed)
 
-    print("Angle difference: " String((gyro_sensor.angle() - initial_angle) % 360))
+    print("Angle difference: " String(gyro_sensor.angle() % 360))
 
 def square2(speed):
     gyro_sensor.reset_angle(0)
 
-    initial_angle = gyro_sensor.angle()
 
     drive(-50, robot_speed)
     turn(-90, robot_speed)
@@ -134,14 +131,17 @@ def square2(speed):
     drive(-50, robot_speed)
     turn(-90, robot_speed)
 
-    print("Angle difference: " String((gyro_sensor.angle() - initial_angle) % 360))
+    print("Angle difference: " String(gyro_sensor.angle() % 360))
 
 
 def check_gyro_drift():
-    initial_angle = gyro_sensor.angle()
+    gyro_sensor.reset_angle(0)
 
     wait(5000)
 
-    print("Gyro Drift per Second: " + String((gyro_sensor.angle() - initial_angle) / 5))
+    print("Gyro Drift per Second: " + String(gyro_sensor.angle() / 5))
 
-def motor_type():
+#can be used to stop robot if it gets too close to wall
+def ultrasonic_check(min_distance):
+    if(ultrasonic_sensor.distance() < min_distance || ultrasonic_sensor.distance() == min_distance):
+        exit()
