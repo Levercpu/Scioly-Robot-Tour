@@ -56,9 +56,9 @@ def turn(degrees, speed):
     
     initial_angle = gyro_sensor.angle()
     
-    while abs(gyro_sensor.angle() - initial_angle) <= abs(degrees)-15:
-        left_motor.run(-speed * sign((gyro_sensor.angle() - initial_angle) - degrees))
-        right_motor.run(speed * sign((gyro_sensor.angle() - initial_angle) - degrees))
+    while abs(gyro_sensor.angle()) <= abs(degrees)-15:
+        left_motor.run(-speed * sign(gyro_sensor.angle() - degrees))
+        right_motor.run(speed * sign(gyro_sensor.angle() - degrees))
     
     left_motor.hold()
     right_motor.hold()
