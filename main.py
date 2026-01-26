@@ -44,9 +44,9 @@ def sign(x):
         return -1
 
 def align_angle(target_angle):
-    while gyro_sensor.angle()-initial_angle != target_angle:
+    while gyro_sensor.angle() != target_angle:
         left_motor.run(absolute_min_speed * sign(gyro_sensor.angle() - target_angle))
-        right_motor.run(absolute_min_speed * sign(gyro_sensor.angle() - target_angle))
+        right_motor.run(-absolute_min_speed * sign(gyro_sensor.angle() - target_angle))
         
     left_motor.hold()
     right_motor.hold()
@@ -101,7 +101,7 @@ def drive(distance, speed):
     left_motor.hold()
     right_motor.hold()
 
-    align_angle()
+    align_angle(0)
     wait(100)
 
 def square1(speed):
@@ -143,3 +143,5 @@ def check_gyro_drift():
     wait(5000)
 
     print("Gyro Drift per Second: " + String((gyro_sensor.angle() - initial_angle) / 5))
+
+def motor_type():
