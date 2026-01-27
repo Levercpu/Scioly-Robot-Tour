@@ -80,10 +80,10 @@ def drive(distance, speed):
     avg_encoder_value = (left_motor.angle() + right_motor.angle()) / 2
 
     # ratio of current distance covered to final distance covered
-    position_ratio = avg_angle / (distance * wheel_circum)
+    position_ratio = avg_encoder_value / (distance * wheel_circum)
 
     # use formula for smooth acceleration and deceleration
-    scaling_factor = 1 - ((2 * current_pos - sign) ** 6)
+    scaling_factor = 1 - ((2 * position_ratio - sign) ** 6)
     calc_speed = (sign * 2/3 * speed * scaling_factor) + sign * speed # 2/3 * speed = range
 
     while abs((left_motor.angle() + right_motor.angle()) / 2) < abs(distance) * wheel_circum - 30: # constant at the end is used to offset error
@@ -116,7 +116,7 @@ def square1(speed):
     drive(50, robot_speed)
     turn(90, robot_speed)
 
-    print("Angle difference: " String(gyro_sensor.angle() % 360))
+    print("Angle difference: " + str(gyro_sensor.angle() % 360))
 
 def square2(speed):
     gyro_sensor.reset_angle(0)
@@ -131,7 +131,7 @@ def square2(speed):
     drive(-50, robot_speed)
     turn(-90, robot_speed)
 
-    print("Angle difference: " String(gyro_sensor.angle() % 360))
+    print("Angle difference: " + str(gyro_sensor.angle() % 360))
 
 
 def check_gyro_drift():
@@ -139,9 +139,9 @@ def check_gyro_drift():
 
     wait(5000)
 
-    print("Gyro Drift per Second: " + String(gyro_sensor.angle() / 5))
+    print("Gyro Drift per Second: " + str(gyro_sensor.angle() / 5))
 
 #can be used to stop robot if it gets too close to wall
 def ultrasonic_check(min_distance):
-    if(ultrasonic_sensor.distance() < min_distance || ultrasonic_sensor.distance() == min_distance):
+    if(ultrasonic_sensor.distance() < min_distance or ultrasonic_sensor.distance() == min_distance):
         exit()
