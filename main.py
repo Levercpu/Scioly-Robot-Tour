@@ -20,7 +20,9 @@ ev3 = EV3Brick()
 left_motor = Motor(Port.A)
 right_motor = Motor(Port.B)
 gyro_sensor = GyroSensor(Port.S1)
-ultrasonic_sensor = UltrasonicSensor(Port.S4)
+#ultrasonic_sensor = UltrasonicSensor(Port.S4)
+
+robot = DriveBase(left_motor, right_motor, wheel_diameter=55.5, axle_track=104)
 
 #constants
 
@@ -30,8 +32,8 @@ square_length = 50
 axle_track = 144
 
 #mm/s
-absolute_min_speed = 100 #smallest speed the motors will function at
-robot_speed = 500
+absolute_min_speed = 20 #smallest speed the motors will function at
+robot_speed = 100
 
 
 # functions
@@ -46,35 +48,42 @@ def sign(x):
         return -1
 
 def align_angle(target_angle):
+    wait(50)
+
     while gyro_sensor.angle() != target_angle:
-        left_motor.run(absolute_min_speed * sign(gyro_sensor.angle() - target_angle))
-        right_motor.run(-absolute_min_speed * sign(gyro_sensor.angle() - target_angle))
+        print(str(gyro_sensor.angle()) + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed()))
+        left_motor.run(absolute_min_speed * sign(target_angle - gyro_sensor.angle()))
+        right_motor.run(-absolute_min_speed * sign(target_angle - gyro_sensor.angle()))
         
-    left_motor.hold()
-    right_motor.hold()
+    left_motor.stop()
+    right_motor.stop()
+
+    print(str(gyro_sensor.angle()) + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed()))
 
 def turn(degrees, speed):
     gyro_sensor.reset_angle(0)
         
-    while abs(gyro_sensor.angle()) <= abs(degrees)-15:
+    while abs(gyro_sensor.angle()) <= abs(degrees) - 10:
+        print(str(gyro_sensor.angle()) + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed()))
         left_motor.run(-speed * sign(gyro_sensor.angle() - degrees))
         right_motor.run(speed * sign(gyro_sensor.angle() - degrees))
     
-    left_motor.hold()
-    right_motor.hold()
+    left_motor.stop()
+    right_motor.stop()
 
     align_angle(degrees)
     align_angle(degrees)
     
     wait(100)
+    print(str(gyro_sensor.angle()) + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed()))
 
-
+'''
 def drive(distance, speed):
     gyro_sensor.reset_angle(0)
     left_motor.reset_angle(0)
     right_motor.reset_angle(0)
 
-    sign = sign(distance)
+    p_or_n = sign(distance)
 
     # average of the two encoders for accuracy
     avg_encoder_value = (left_motor.angle() + right_motor.angle()) / 2
@@ -83,11 +92,12 @@ def drive(distance, speed):
     position_ratio = avg_encoder_value / (distance * wheel_circum)
 
     # use formula for smooth acceleration and deceleration
-    scaling_factor = 1 - ((2 * position_ratio - sign) ** 6)
-    calc_speed = (sign * 2/3 * speed * scaling_factor) + sign * speed # 2/3 * speed = range
+    scaling_factor = 1 - ((2 * position_ratio - float(p_or_n)) ** 6)
+    calc_speed = (p_or_n * 2/3 * speed * scaling_factor) + p_or_n * speed # 2/3 * speed = range
 
     while abs((left_motor.angle() + right_motor.angle()) / 2) < abs(distance) * wheel_circum - 30: # constant at the end is used to offset error
         current_distance = (left_motor.angle() + right_motor.angle()) / 2
+        print(gyro_sensor.angle())
         if (current_distance < 209):
             left_motor.run(calc_speed - gyro_sensor.angle() * 5)
             right_motor.run(calc_speed + gyro_sensor.angle() * 5)
@@ -98,23 +108,61 @@ def drive(distance, speed):
             left_motor.run(5/3 * calc_speed - gyro_sensor.angle() * 5)
             right_motor.run(5/3 * calc_speed + gyro_sensor.angle() * 5)
    
-    left_motor.hold()
-    right_motor.hold()
+    left_motor.stop()
+    right_motor.stop()
 
     align_angle(0)
     wait(100)
+'''
+
+def drive(distance, speed):
+    gyro_sensor.reset_angle(0)
+    left_motor.reset_angle(0)
+    right_motor.reset_angle(0)
+
+    p_or_n = sign(distance)
+
+    # average of the two encoders for accuracy
+    avg_encoder_value = (left_motor.angle() + right_motor.angle()) / 2
+
+    # ratio of current distance covered to final distance covered
+    position_ratio = avg_encoder_value / (distance * wheel_circum)
+
+    # use formula for smooth acceleration and deceleration
+    scaling_factor = 1 - ((2 * position_ratio - p_or_n) ** 6)
+    calc_speed = (p_or_n * 150 * scaling_factor) + p_or_n * speed
+
+    while abs((left_motor.angle() + right_motor.angle()) / 2) < abs(distance) * wheel_circum - 50: # constant at the end is used to offset error
+        current_distance = (left_motor.angle() + right_motor.angle()) / 2
+        print(str(gyro_sensor.angle()) + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed()))
+        if (current_distance < 209):
+            left_motor.run(calc_speed - gyro_sensor.angle() * 5)
+            right_motor.run(calc_speed + gyro_sensor.angle() * 5)
+        elif (current_distance > (distance - 10) * 20.9):
+            left_motor.run(calc_speed - gyro_sensor.angle() * 5)
+            right_motor.run(calc_speed + gyro_sensor.angle() * 5)
+        else:
+            left_motor.run(50 + speed - gyro_sensor.angle() * 5)
+            right_motor.run(50 + speed + gyro_sensor.angle() * 5)
+   
+    left_motor.stop()
+    right_motor.stop()
+
+    align_angle(0)
+    wait(100)
+    print(str(gyro_sensor.angle()) + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed()))
 
 def square1(speed):
     gyro_sensor.reset_angle(0)
 
-    drive(50, robot_speed)
-    turn(90, robot_speed)
-    drive(50, robot_speed)
-    turn(90, robot_speed)
-    drive(50, robot_speed)
-    turn(90, robot_speed)
-    drive(50, robot_speed)
-    turn(90, robot_speed)
+    drive(50, speed)
+    turn(90, speed)
+    drive(50, speed)
+    turn(90, speed)
+    drive(50, speed)
+    turn(90, speed)
+    drive(50, speed)
+    turn(90, speed)
 
     print("Angle difference: " + str(gyro_sensor.angle() % 360))
 
@@ -122,14 +170,14 @@ def square2(speed):
     gyro_sensor.reset_angle(0)
 
 
-    drive(-50, robot_speed)
-    turn(-90, robot_speed)
-    drive(-50, robot_speed)
-    turn(-90, robot_speed)
-    drive(-50, robot_speed)
-    turn(-90, robot_speed)
-    drive(-50, robot_speed)
-    turn(-90, robot_speed)
+    drive(-50, speed)
+    turn(-90, speed)
+    drive(-50, speed)
+    turn(-90, speed)
+    drive(-50, speed)
+    turn(-90, speed)
+    drive(-50, speed)
+    turn(-90, speed)
 
     print("Angle difference: " + str(gyro_sensor.angle() % 360))
 
@@ -145,3 +193,4 @@ def check_gyro_drift():
 def ultrasonic_check(min_distance):
     if(ultrasonic_sensor.distance() < min_distance or ultrasonic_sensor.distance() == min_distance):
         exit()
+
