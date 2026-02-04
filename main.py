@@ -148,4 +148,3 @@ def check_gyro_drift():
 
     print("Gyro Drift per Second: " + str(gyro_sensor.angle() / 5))
 
-square1(500, 250)
