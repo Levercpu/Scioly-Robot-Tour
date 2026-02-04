@@ -14,8 +14,6 @@ from pybricks.media.ev3dev import SoundFile, ImageFile
 
 TO-DO LIST
 
-- figure out how to stop program
-- time robot startup
 - test on actual track
 
 '''
@@ -29,8 +27,6 @@ ev3 = EV3Brick()
 left_motor = Motor(Port.A)
 right_motor = Motor(Port.D)
 gyro_sensor = GyroSensor(Port.S1)
-
-robot = DriveBase(left_motor, right_motor, wheel_diameter=55.5, axle_track=104)
 
 #constants
 
@@ -73,13 +69,13 @@ def turn(degrees, speed):
     gyro_sensor.reset_angle(0)
         
     while abs(gyro_sensor.angle()) <= abs(degrees) - 20:
-        print(str(gyro_sensor.angle()) + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed()))
-        left_motor.run(-speed * sign(gyro_sensor.angle() - degrees))
-        right_motor.run(speed * sign(gyro_sensor.angle() - degrees))
-    
-    #left_motor.stop()
-    #right_motor.stop()
+        turn_speed_ratio = 0.75 + (degrees - gyro_sensor.angle()) / degrees
 
+        print(str(gyro_sensor.angle()) + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed()))
+
+        left_motor.run(-turn_speed_ratio * speed * sign(gyro_sensor.angle() - degrees))
+        right_motor.run(turn_speed_ratio * speed * sign(gyro_sensor.angle() - degrees))
+    
     align_angle(degrees)
     align_angle(degrees)
     
@@ -94,13 +90,8 @@ def drive(distance, speed):
     p_or_n = sign(distance)
 
     while abs((left_motor.angle() + right_motor.angle()) / 2) < abs(distance) * wheel_circum - 50: # constant at the end is used to offset error
-        # average of the two encoders for accuracy
         avg_encoder_value = abs((left_motor.angle() + right_motor.angle()) / 2)
-
-        # ratio of current distance covered to final distance covered
         position_ratio = avg_encoder_value / (distance * wheel_circum)
-
-        # use formula for smooth acceleration and deceleration
         scaling_factor = 1 - ((2 * position_ratio - p_or_n) ** 6)
         calc_speed = (p_or_n * speed * scaling_factor) + p_or_n * speed / 5
 
@@ -147,3 +138,5 @@ def check_gyro_drift():
     print("Gyro Drift per Second: " + str(gyro_sensor.angle() / 5))
 
 
+# square(50, 500, 91, 250)
+turn(90, 250)
