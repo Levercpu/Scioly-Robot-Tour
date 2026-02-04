@@ -10,6 +10,17 @@ from pybricks.media.ev3dev import SoundFile, ImageFile
 # This program requires LEGO EV3 MicroPython v2.0 or higher.
 # Click "Open user guide" on the EV3 extension tab for more information.
 
+'''
+
+TO-DO LIST
+
+- figure out how to stop program
+- time robot startup
+- test on actual track
+
+'''
+
+
 
 #objects
 
@@ -53,8 +64,8 @@ def align_angle(target_angle):
         left_motor.run(absolute_min_speed * sign(target_angle - gyro_sensor.angle()))
         right_motor.run(-absolute_min_speed * sign(target_angle - gyro_sensor.angle()))
         
-    left_motor.hold()
-    right_motor.hold()
+    left_motor.stop()
+    right_motor.stop()
 
     print(str(gyro_sensor.angle()) + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed()))
 
@@ -66,8 +77,8 @@ def turn(degrees, speed):
         left_motor.run(-speed * sign(gyro_sensor.angle() - degrees))
         right_motor.run(speed * sign(gyro_sensor.angle() - degrees))
     
-    left_motor.stop()
-    right_motor.stop()
+    #left_motor.stop()
+    #right_motor.stop()
 
     align_angle(degrees)
     align_angle(degrees)
@@ -95,49 +106,36 @@ def drive(distance, speed):
 
         if (avg_encoder_value < 209):
             print("ACC " + str(gyro_sensor.angle()) + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed()))
-            left_motor.run(calc_speed - gyro_sensor.angle() * 3)
-            right_motor.run(calc_speed + gyro_sensor.angle() * 3)
+            left_motor.run(calc_speed - gyro_sensor.angle() * 5)
+            right_motor.run(calc_speed + gyro_sensor.angle() * 5)
         elif (avg_encoder_value > (abs(distance) - 10) * 20.9):
             print("DEC " + str(gyro_sensor.angle()) + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed()))
-            left_motor.run(calc_speed - gyro_sensor.angle() * 3)
-            right_motor.run(calc_speed + gyro_sensor.angle() * 3)
+            left_motor.run(calc_speed - gyro_sensor.angle() * 5)
+            right_motor.run(calc_speed + gyro_sensor.angle() * 5)
         else:
             print("MAX " + str(gyro_sensor.angle()) + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed()))
-            left_motor.run(p_or_n * 1.2 * speed - gyro_sensor.angle() * 3)
-            right_motor.run(p_or_n * 1.2 * speed + gyro_sensor.angle() * 3)
-
-    left_motor.hold()
-    right_motor.hold()
+            left_motor.run(p_or_n * 1.1 * speed - gyro_sensor.angle() * 5)
+            right_motor.run(p_or_n * 1.1 * speed + gyro_sensor.angle() * 5)
 
     align_angle(0)
+    align_angle(0)
+
     wait(100)
+
     print(str(gyro_sensor.angle()) + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed()))
 
-def square1(drive_speed, turn_speed):
+
+def square(drive_distance, drive_speed, turn_angle, turn_speed):
     gyro_sensor.reset_angle(0)
 
-    drive(50, drive_speed)
-    turn(91, turn_speed)
-    drive(50, drive_speed)
-    turn(91, turn_speed)
-    drive(50, drive_speed)
-    turn(91, turn_speed)
-    drive(50, drive_speed)
-    turn(91, turn_speed)
-
-    print("Angle difference: " + str(gyro_sensor.angle() % 360))
-
-def square2(drive_speed, turn_speed):
-    gyro_sensor.reset_angle(0)
-
-    drive(-50, drive_speed)
-    turn(-90, turn_speed)
-    drive(-50, drive_speed)
-    turn(-90, turn_speed)
-    drive(-50, drive_speed)
-    turn(-90, turn_speed)
-    drive(-50, drive_speed)
-    turn(-90, turn_speed)
+    drive(drive_distance, drive_speed)
+    turn(turn_angle, turn_speed)
+    drive(drive_distance, drive_speed)
+    turn(turn_angle, turn_speed)
+    drive(drive_distance, drive_speed)
+    turn(turn_angle, turn_speed)
+    drive(drive_distance, drive_speed)
+    turn(turn_angle, turn_speed)
 
     print("Angle difference: " + str(gyro_sensor.angle() % 360))
 
@@ -147,4 +145,5 @@ def check_gyro_drift():
     wait(5000)
 
     print("Gyro Drift per Second: " + str(gyro_sensor.angle() / 5))
+
 
