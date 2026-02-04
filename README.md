@@ -1,4 +1,3 @@
-# Scioly-Robot-Tour
 Reply to the email with your github account username (or create one and then reply) so I can invite you as collobrator (you have to accept it too). Create branches and PR requests if you want to edit the code. 
 
 To actually use it, you have to 
