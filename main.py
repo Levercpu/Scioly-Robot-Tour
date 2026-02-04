@@ -1,3 +1,4 @@
+#!/usr/bin/env pybricks-micropython
 from pybricks.hubs import EV3Brick
 from pybricks.ev3devices import Motor, GyroSensor
 from pybricks.parameters import Port, Button
@@ -5,9 +6,12 @@ from pybricks.tools import wait, StopWatch, DataLog
 
 '''
 TO-DO LIST
-
+- fix left turn
 - test on actual track
 - time drives and turns
+
+TIMES:
+- turn R: 1.3
 '''
 
 #objects
@@ -15,6 +19,7 @@ ev3 = EV3Brick()
 left_motor = Motor(Port.A)
 right_motor = Motor(Port.D)
 gyro_sensor = GyroSensor(Port.S1)
+timer = StopWatch()
 
 #constants
 wheel_circum = 20.9 #cm
@@ -48,6 +53,7 @@ def align_angle(target_angle):
 
 def turn(degrees, speed):
     gyro_sensor.reset_angle(0)
+    timer.reset()
         
     while abs(gyro_sensor.angle()) <= abs(degrees) - 20:
         turn_speed_ratio = 0.75 + (degrees - gyro_sensor.angle()) / degrees
@@ -64,11 +70,14 @@ def turn(degrees, speed):
     wait(100)
 
     print(str(gyro_sensor.angle()) + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed()))
+    print(timer.time())
+
 
 def drive(distance, speed):
     gyro_sensor.reset_angle(0)
     left_motor.reset_angle(0)
     right_motor.reset_angle(0)
+    timer.reset()
 
     pos_neg = sign(distance)
 
@@ -100,6 +109,7 @@ def drive(distance, speed):
     wait(100)
 
     print(str(gyro_sensor.angle()) + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed()))
+    print(timer.time())
 
 
 def square(drive_distance, drive_speed, turn_angle, turn_speed):
@@ -124,4 +134,3 @@ def check_gyro_drift():
     print("Gyro Drift per Second: " + str(gyro_sensor.angle() / 5))
 
 
-square(-50, 500, -91, 250)
