@@ -23,6 +23,7 @@ TIMES:
 
 #objects
 ev3 = EV3Brick()
+
 left_motor = Motor(Port.A)
 right_motor = Motor(Port.D)
 gyro_sensor = GyroSensor(Port.S1)
