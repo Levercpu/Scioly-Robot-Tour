@@ -61,8 +61,8 @@ class Robot:
         self.start_angle = 0
         self.speed = 0
     def updatePos(self):
-        self.speed = (left_motor.speed() + right_motor.speed())/2 / 360 * wheel_circum
-        self.theta = GyroSensor.angle
+        self.speed = (self.left_motor.speed() + self.right_motor.speed())/2 / 360 * wheel_circum
+        self.theta = self.gyro.angle()
         angle = self.theta * pi / 180
         self.x = self.x + self.speed * dt * cos(angle)
         self.y = self.y + self.speed * dt * sin(angle)
@@ -73,30 +73,30 @@ class Robot:
         wait(50)
         while self.theta != target_angle:
             self.updatePos(self)
-            left_motor.run(min_speed * sign(target_angle - self.theta))
-            right_motor.run(-min_speed * sign(target_angle - self.theta))
+            self.left_motor.run(min_speed * sign(target_angle - self.theta))
+            self.right_motor.run(-min_speed * sign(target_angle - self.theta))
             wait(dt)  
-        left_motor.brake()
-        right_motor.brake()
-        print(str(self.theta + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed())))
+        self.left_motor.brake()
+        self.right_motor.brake()
+        print(str(self.theta + " LEFT: " + str(self.left_motor.speed()) + " RIGHT: " + str(self.right_motor.speed())))
     def align_rel(self, target_angle):
         wait(50)
         while self.rel_angle != target_angle:
             self.updatePos(self)
-            left_motor.run(min_speed * sign(target_angle - self.rel_angle))
-            right_motor.run(-min_speed * sign(target_angle - self.rel_angle))
+            self.left_motor.run(min_speed * sign(target_angle - self.rel_angle))
+            self.right_motor.run(-min_speed * sign(target_angle - self.rel_angle))
             wait(dt)  
-        left_motor.brake()
-        right_motor.brake()
+        self.left_motor.brake()
+        self.right_motor.brake()
 
-        print(str(self.theta + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed())))
+        print(str(self.theta + " LEFT: " + str(self.left_motor.speed()) + " RIGHT: " + str(self.right_motor.speed())))
     def turn_abs(self, target_angle, speed):
         while abs(self.theta) <= abs(target_angle) - 20:
             self.updatePos()
             turn_speed_ratio = 0.75 + (target_angle - self.theta) / target_angle
             turn_speed = turn_speed_ratio * speed * sign(self.theta - target_angle)
-            left_motor.run(-turn_speed)
-            right_motor.run(turn_speed)
+            self.left_motor.run(-turn_speed)
+            self.right_motor.run(turn_speed)
             wait(dt)
         
         self.align_abs(target_angle)
@@ -111,8 +111,8 @@ class Robot:
             self.updatePos()
             turn_speed_ratio = 0.75 + (degrees - self.rel_angle) / degrees
             turn_speed = turn_speed_ratio * speed * sign(self.rel_angle - degrees)
-            left_motor.run(-turn_speed)
-            right_motor.run(turn_speed)
+            self.left_motor.run(-turn_speed)
+            self.right_motor.run(turn_speed)
             wait(dt)
         
         self.align_rel(degrees)
@@ -132,14 +132,14 @@ class Robot:
             drive_speed = pos_neg * speed * (drive_speed_ratio + 0.2)
             angle = distance.angle - self.theta
             if(self.speed < 20) :
-                left_motor.run(drive_speed - angle * 5)
-                right_motor.run(drive_speed + angle * 5)
+                self.left_motor.run(drive_speed - angle * 5)
+                self.right_motor.run(drive_speed + angle * 5)
             elif(distance.magnitude < 10):
-                left_motor.run(drive_speed - angle * 5)
-                right_motor.run(drive_speed + angle * 5)
+                self.left_motor.run(drive_speed - angle * 5)
+                self.right_motor.run(drive_speed + angle * 5)
             else: 
-                left_motor.run(pos_neg * 1.1 * speed - angle * 5)
-                right_motor.run(pos_neg * 1.1 * speed + angle * 5)
+                self.left_motor.run(pos_neg * 1.1 * speed - angle * 5)
+                self.right_motor.run(pos_neg * 1.1 * speed + angle * 5)
             self.updatePos()
             distance = Vector2d(self.pos, target_pose)
     def drive_to(self, x, y, speed):
@@ -158,14 +158,14 @@ class Robot:
             drive_speed_ratio = 1 - ((2 * position_ratio - pos_neg) ** 6)
             drive_speed = pos_neg * speed * (drive_speed_ratio + 0.2)
             if (avg_encoder_value < 209):
-                left_motor.run(drive_speed - self.rel_angle * 5)
-                right_motor.run(drive_speed + self.rel_angle * 5)
+                self.left_motor.run(drive_speed - self.rel_angle * 5)
+                self.right_motor.run(drive_speed + self.rel_angle * 5)
             elif (avg_encoder_value > (abs(distance) - 10) * 20.9):
-                left_motor.run(drive_speed - self.rel_angle * 5)
-                right_motor.run(drive_speed + self.rel_angle * 5)
+                self.left_motor.run(drive_speed - self.rel_angle * 5)
+                self.right_motor.run(drive_speed + self.rel_angle * 5)
             else:
-                left_motor.run(pos_neg * 1.1 * speed - self.rel_angle * 5)
-                right_motor.run(pos_neg * 1.1 * speed + self.rel_angle * 5)
+                self.left_motor.run(pos_neg * 1.1 * speed - self.rel_angle * 5)
+                self.right_motor.run(pos_neg * 1.1 * speed + self.rel_angle * 5)
             wait(dt)
 
         left_motor.brake()
