@@ -1,5 +1,5 @@
 #!/usr/bin/env pybricks-micropython
-from math import sin, cos, pi
+from math import sin, cos, pi, sqrt, arctan
 from pybricks.hubs import EV3Brick
 from pybricks.ev3devices import Motor, UltrasonicSensor, GyroSensor
 from pybricks.parameters import Port, Stop, Direction, Button, Color
@@ -36,36 +36,162 @@ wheel_circum = 20.9
 square_length = 50
 axle_track = 144
 
-#mm/s
-absolute_min_speed = 10 #smallest speed the motors will function at
-drive_speed = 500
-turn_speed = 250
+wheel_circum = 20.9 #cm
+min_speed = 10 #mm/s
+drive_speed = 500 #mm/s
+turn_speed = 250 #mm/s
 
 #ms
 dt=20
 class Robot:
-    def __init__(self, wheel_base, wheel_radius, left_motor: Motor, right_motor: Motor):
+    def __init__(self, wheel_base, wheel_radius, left_motor: Motor, right_motor: Motor, gyro: GyroSensor):
         self.left_motor = left_motor
         self.right_motor = right_motor
+        self.gyro = gyro
         self.wheel_base = wheel_base
         self.wheel_radius = wheel_radius
         self.pos = Pose2d(0,0,0)
         self.x = 0
         self.y = 0
         self.theta = 0
+        self.start_left = 0
+        self.start_right = 0
+        self.rel_distance = 0
+        self.rel_angle = 0
+        self.start_angle = 0
+        self.speed = 0
     def updatePos(self):
-        averageSpeed = (left_motor.speed() + right_motor.speed())/2
-        angle = GyroSensor.angle() * pi / 180
-        self.x = self.x + averageSpeed * dt * cos(angle)
-        self.y = self.y + averageSpeed * dt * sin(angle)
-        self.theta = angle
+        self.speed = (left_motor.speed() + right_motor.speed())/2 / 360 * wheel_circum
+        self.theta = GyroSensor.angle
+        angle = self.theta * pi / 180
+        self.x = self.x + self.speed * dt * cos(angle)
+        self.y = self.y + self.speed * dt * sin(angle)
         self.pos = Pose2d(self.x,self.y,self.theta)
+        self.rel_distance = self.distance()
+        self.rel_angle = self.theta - self.start_angle
+    def align_abs(self, target_angle):
+        wait(50)
+        while self.theta != target_angle:
+            self.updatePos(self)
+            left_motor.run(min_speed * sign(target_angle - self.theta))
+            right_motor.run(-min_speed * sign(target_angle - self.theta))
+            wait(dt)  
+        left_motor.brake()
+        right_motor.brake()
+        print(str(self.theta + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed())))
+    def align_rel(self, target_angle):
+        wait(50)
+        while self.rel_angle != target_angle:
+            self.updatePos(self)
+            left_motor.run(min_speed * sign(target_angle - self.rel_angle))
+            right_motor.run(-min_speed * sign(target_angle - self.rel_angle))
+            wait(dt)  
+        left_motor.brake()
+        right_motor.brake()
+
+        print(str(self.theta + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed())))
+    def turn_abs(self, target_angle, speed):
+        while abs(self.theta) <= abs(target_angle) - 20:
+            self.updatePos()
+            turn_speed_ratio = 0.75 + (target_angle - self.theta) / target_angle
+            turn_speed = turn_speed_ratio * speed * sign(self.theta - target_angle)
+            left_motor.run(-turn_speed)
+            right_motor.run(turn_speed)
+            wait(dt)
+        
+        self.align_abs(target_angle)
+        self.align_abs(target_angle)
+        
+        wait(100)
+        
+        print(str(self.theta + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed())))
+    def turn_rel(self, degrees, speed):
+        self.start_angle = 0
+        while abs(self.rel_angle) <= abs(degrees) - 20:
+            self.updatePos()
+            turn_speed_ratio = 0.75 + (degrees - self.rel_angle) / degrees
+            turn_speed = turn_speed_ratio * speed * sign(self.rel_angle - degrees)
+            left_motor.run(-turn_speed)
+            right_motor.run(turn_speed)
+            wait(dt)
+        
+        self.align_rel(degrees)
+        self.align_rel(degrees)
+        
+        wait(100)
+
+        print(str(self.theta + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed())))
+    def drive_abs(self, target_pose: Pose2d, speed):
+        distance = Vector2d(self.pos, target_pose)
+        initial_distance = distance.magnitude
+        pos_neg = sign(cos(distance.angle))
+        while (distance.magnitude>5):
+            avg_encoder_value = abs(initial_distance-distance.magntiude)
+            position_ratio = avg_encoder_value / (distance * wheel_circum)
+            drive_speed_ratio = 1 - ((2 * position_ratio - pos_neg) ** 6)
+            drive_speed = pos_neg * speed * (drive_speed_ratio + 0.2)
+            angle = distance.angle - self.theta
+            if(self.speed < 20) :
+                left_motor.run(drive_speed - angle * 5)
+                right_motor.run(drive_speed + angle * 5)
+            elif(distance.magnitude < 10):
+                left_motor.run(drive_speed - angle * 5)
+                right_motor.run(drive_speed + angle * 5)
+            else: 
+                left_motor.run(pos_neg * 1.1 * speed - angle * 5)
+                right_motor.run(pos_neg * 1.1 * speed + angle * 5)
+            self.updatePos()
+            distance = Vector2d(self.pos, target_pose)
+    def drive_to(self, x, y, speed):
+        self.drive_abs(Pose2d(x,y,0) ,speed)
+    def drive_rel(self, distance, speed):
+        self.start_angle = self.theta
+        self.start_left = self.left_motor.angle()
+        self.start_right = self.right_motor.angle()
+
+        pos_neg = sign(distance)
+
+        while abs(self.rel_distance) < abs(distance) * wheel_circum - 40: # constant at the end is used to offset error
+            self.updatePos()
+            avg_encoder_value = abs(self.rel_distance)
+            position_ratio = avg_encoder_value / (distance * wheel_circum)
+            drive_speed_ratio = 1 - ((2 * position_ratio - pos_neg) ** 6)
+            drive_speed = pos_neg * speed * (drive_speed_ratio + 0.2)
+            if (avg_encoder_value < 209):
+                left_motor.run(drive_speed - self.rel_angle * 5)
+                right_motor.run(drive_speed + self.rel_angle * 5)
+            elif (avg_encoder_value > (abs(distance) - 10) * 20.9):
+                left_motor.run(drive_speed - self.rel_angle * 5)
+                right_motor.run(drive_speed + self.rel_angle * 5)
+            else:
+                left_motor.run(pos_neg * 1.1 * speed - self.rel_angle * 5)
+                right_motor.run(pos_neg * 1.1 * speed + self.rel_angle * 5)
+            wait(dt)
+
+        left_motor.brake()
+        right_motor.brake()
+
+        self.align_rel(0)
+        self.align_rel(0)
+
+        wait(100)
+
+        print(str(self.theta + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed())))
+    def distance(self):
+        return (self.left_motor.angle()-self.start_left+self.right_motor.angle()-self.start_right)/2
 
 class Pose2d:
     def __init__(self, xPos, yPos, theta):
         self.xPos = xPos
         self.yPos = yPos
         self.theta = theta
+
+class Vector2d:
+    def __init__(self, init_pos: Pose2d, final_pos: Pose2d):
+        self.deltaX = final_pos.xPos - init_pos.xPos
+        self.deltaY = final_pos.yPos - init_pos.yPos
+        self.magnitude = sqrt(self.deltaX,self.deltaY)
+        self.angle = arctan(self.deltaY/self.deltaX) * 180 / pi
 # functions
 
 def sign(x):
@@ -75,100 +201,3 @@ def sign(x):
         return 0
     else:
         return -1
-    
-
-def align_angle(target_angle):
-    wait(50)
-
-    while gyro_sensor.angle() != target_angle:
-        print(str(gyro_sensor.angle()) + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed()))
-        left_motor.run(absolute_min_speed * sign(target_angle - gyro_sensor.angle()))
-        right_motor.run(-absolute_min_speed * sign(target_angle - gyro_sensor.angle()))
-        position = position.updatePos(position)
-        
-    left_motor.stop()
-    right_motor.stop()
-
-    print(str(gyro_sensor.angle()) + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed()))
-    return position
-
-def turn(degrees, speed, position: Pose2d) -> Pose2d:
-    gyro_sensor.reset_angle(0)
-        
-    while abs(gyro_sensor.angle()) <= abs(degrees) - 20:
-        turn_speed_ratio = 0.75 + (degrees - gyro_sensor.angle()) / degrees
-
-        print(str(gyro_sensor.angle()) + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed()))
-
-        left_motor.run(-turn_speed_ratio * speed * sign(gyro_sensor.angle() - degrees))
-        right_motor.run(turn_speed_ratio * speed * sign(gyro_sensor.angle() - degrees))
-        position = position.updatePos(position)
-    
-    align_angle(degrees, position)
-    align_angle(degrees, position)
-    
-    wait(100)
-    print(str(gyro_sensor.angle()) + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed()))
-    return position
-
-def drive(distance, speed, position: Pose2d) -> Pose2d:
-    gyro_sensor.reset_angle(0)
-    left_motor.reset_angle(0)
-    right_motor.reset_angle(0)
-
-    p_or_n = sign(distance)
-
-    while abs((left_motor.angle() + right_motor.angle()) / 2) < abs(distance) * wheel_circum - 50: # constant at the end is used to offset error
-        avg_encoder_value = abs((left_motor.angle() + right_motor.angle()) / 2)
-        position_ratio = avg_encoder_value / (distance * wheel_circum)
-        scaling_factor = 1 - ((2 * position_ratio - p_or_n) ** 6)
-        calc_speed = (p_or_n * speed * scaling_factor) + p_or_n * speed / 5
-
-        if (avg_encoder_value < 209):
-            print("ACC " + str(gyro_sensor.angle()) + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed()))
-            left_motor.run(calc_speed - gyro_sensor.angle() * 5)
-            right_motor.run(calc_speed + gyro_sensor.angle() * 5)
-        elif (avg_encoder_value > (abs(distance) - 10) * 20.9):
-            print("DEC " + str(gyro_sensor.angle()) + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed()))
-            left_motor.run(calc_speed - gyro_sensor.angle() * 5)
-            right_motor.run(calc_speed + gyro_sensor.angle() * 5)
-        else:
-            print("MAX " + str(gyro_sensor.angle()) + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed()))
-            left_motor.run(p_or_n * 1.1 * speed - gyro_sensor.angle() * 5)
-            right_motor.run(p_or_n * 1.1 * speed + gyro_sensor.angle() * 5)
-        position = position.updatePos(position)
-
-    align_angle(0, position)
-    align_angle(0, position)
-
-    wait(100)
-
-    print(str(gyro_sensor.angle()) + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed()))
-
-    return position
-
-
-def square(drive_distance, drive_speed, turn_angle, turn_speed):
-    gyro_sensor.reset_angle(0)
-
-    drive(drive_distance, drive_speed)
-    turn(turn_angle, turn_speed)
-    drive(drive_distance, drive_speed)
-    turn(turn_angle, turn_speed)
-    drive(drive_distance, drive_speed)
-    turn(turn_angle, turn_speed)
-    drive(drive_distance, drive_speed)
-    turn(turn_angle, turn_speed)
-
-    print("Angle difference: " + str(gyro_sensor.angle() % 360))
-
-def check_gyro_drift():
-    gyro_sensor.reset_angle(0)
-
-    wait(5000)
-
-    print("Gyro Drift per Second: " + str(gyro_sensor.angle() / 5))
-
-
-# square(50, 500, 91, 250)
-turn(90, 250)
