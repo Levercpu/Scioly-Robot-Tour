@@ -113,16 +113,9 @@ def drive(distance, speed):
 
 
 def square(drive_distance, drive_speed, turn_angle, turn_speed):
-    gyro_sensor.reset_angle(0)
-
-    drive(drive_distance, drive_speed)
-    turn(turn_angle, turn_speed)
-    drive(drive_distance, drive_speed)
-    turn(turn_angle, turn_speed)
-    drive(drive_distance, drive_speed)
-    turn(turn_angle, turn_speed)
-    drive(drive_distance, drive_speed)
-    turn(turn_angle, turn_speed)
+    for i in range(4):
+        drive(drive_distance, drive_speed)
+        turn(turn_angle, turn_speed)
 
     print("Angle difference: " + str(gyro_sensor.angle() % 360))
 
