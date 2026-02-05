@@ -11,7 +11,14 @@ TO-DO LIST
 - time drives and turns
 
 TIMES:
-- turn R: 1.3
+- turn R: 1.3 sec
+- turn L:
+- drive F 50:
+- drive F 100:
+- drive F 150:
+- drive B 50:
+- drive B 100:
+- drive B 150:
 '''
 
 #objects
@@ -127,3 +134,30 @@ def check_gyro_drift():
     print("Gyro Drift per Second: " + str(gyro_sensor.angle() / 5))
 
 
+#sci oly rulebook setup
+drive(77, 500)
+turn(-90, 250)
+drive(50, 500)
+turn(-90, 250)
+drive(50, 500)
+turn(90, 250)
+drive(50, 500)
+drive(-50, 500)
+turn(90, 250)
+drive(50, 500)
+turn(90, 250)
+drive(100, 500)
+turn(90, 250)
+drive(50, 500)
+turn(-90, 250)
+drive(50, 500)
+turn(-90, 250)
+drive(50, 500)
+drive(-50, 500)
+turn(-90, 250)
+drive(50, 500)
+turn(90, 250)
+drive(150, 500)
+turn(-90, 250)
+drive(-50, 500)
+drive(150, 500)
