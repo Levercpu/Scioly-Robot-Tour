@@ -43,13 +43,15 @@ turn_speed = 250 #mm/s
 
 #ms
 dt=20
+
+
 class Robot:
-    def __init__(self, wheel_base, wheel_radius, left_motor: Motor, right_motor: Motor, gyro: GyroSensor):
+    def __init__(self, wheel_base, wheel_circum, left_motor: Motor, right_motor: Motor, gyro: GyroSensor):
         self.left_motor = left_motor
         self.right_motor = right_motor
         self.gyro = gyro
         self.wheel_base = wheel_base
-        self.wheel_radius = wheel_radius
+        self.wheel_circum = wheel_circum
         self.pos = Pose2d(0,0,0)
         self.x = 0
         self.y = 0
@@ -179,6 +181,10 @@ class Robot:
         print(str(self.theta + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed())))
     def distance(self):
         return (self.left_motor.angle()-self.start_left+self.right_motor.angle()-self.start_right)/2
+    def square(self,drive_distance, drive_speed, turn_angle, turn_speed):
+        for i in range(4):
+            self.drive_rel(drive_distance, drive_speed)
+            self.turn_rel(turn_angle, turn_speed)
 
 class Pose2d:
     def __init__(self, xPos, yPos, theta):
@@ -201,3 +207,6 @@ def sign(x):
         return 0
     else:
         return -1
+
+robot = Robot(axle_track, wheel_circum, left_motor, right_motor, gyro_sensor)
+robot.square()
