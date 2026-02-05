@@ -85,7 +85,7 @@ def drive(distance, speed):
         avg_encoder_value = abs((left_motor.angle() + right_motor.angle()) / 2)
         position_ratio = avg_encoder_value / (distance * wheel_circum)
         drive_speed_ratio = 1 - ((2 * position_ratio - pos_neg) ** 6)
-        drive_speed = (pos_neg * speed * drive_speed_ratio) + pos_neg * speed / 5
+        drive_speed = pos_neg * speed * (drive_speed_ratio + 0.2)
 
         if (avg_encoder_value < 209):
             print("ACC " + str(gyro_sensor.angle()) + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed()))
