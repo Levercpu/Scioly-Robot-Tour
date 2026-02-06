@@ -1,8 +1,8 @@
 #!/usr/bin/env pybricks-micropython
-from math import sin, cos, pi, sqrt, atan2, radians, hypot, copysign
+from math import sin, cos, pi, atan2, radians, hypot, copysign
 from pybricks.hubs import EV3Brick
 from pybricks.ev3devices import Motor, GyroSensor
-from pybricks.parameters import Port, Stop, Direction
+from pybricks.parameters import Port
 from pybricks.tools import wait
 
 # --- CLASSES ---
@@ -84,7 +84,7 @@ class Robot:
         while abs(self.pos.theta) <= abs(target_angle) - 20:
             self.update_pos()
             turn_speed_ratio = 0.75 + (target_angle - self.pos.theta) / target_angle
-            turn_speed = round(turn_speed_ratio * speed * copysign(self.pos.theta - target_angle))
+            turn_speed = round(turn_speed_ratio * speed * copysign(1,self.pos.theta - target_angle))
             self.l_motor.run(-turn_speed)
             self.r_motor.run(turn_speed)
             wait(DT)
