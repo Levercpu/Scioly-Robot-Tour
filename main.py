@@ -81,8 +81,7 @@ class Robot:
             self.l_motor.run(-round(MIN_SPEED * copysign(1,target_angle - self.pos.theta)))
             self.r_motor.run(round(MIN_SPEED * copysign(1, target_angle - self.pos.theta)))
             wait(DT)
-        self.l_motor.brake()
-        self.r_motor.brake()
+        self.stop()
         self.print_all()
 
     def turn_abs(self, target_angle, speed):
@@ -94,8 +93,7 @@ class Robot:
             self.l_motor.run(turn_speed)
             self.r_motor.run(-turn_speed)
             wait(DT)
-        self.l_motor.brake()
-        self.r_motor.brake()
+        self.stop()
         self.align_abs(target_angle)
         self.align_abs(target_angle)
 
@@ -113,11 +111,7 @@ class Robot:
         self.turn_abs(distance.angle, TURN_SPEED)
         initial_distance = distance.magnitude
         pos_neg = copysign(1,cos(distance.angle))
-        count = 0
         while distance.magnitude>10:
-            count+=1
-            if count%50==0:
-                self.turn_abs(distance.angle, TURN_SPEED)
             avg_encoder_value = abs(initial_distance-distance.magnitude)
             position_ratio = avg_encoder_value / (distance.magnitude * self.wheel_circ)
             drive_speed_ratio = 1 - ((2 * position_ratio - pos_neg) ** 6)
@@ -135,13 +129,44 @@ class Robot:
             self.update_pos()
             distance = Vector2d(self.pos, target_pose)
             wait(DT)
-        left_motor.brake
-        right_motor.brake
+        self.stop()
         self.print_all()
-
+    def final_drive_align(self, x, y, speed):
+        target_pose = Pose2d(x,y,0)
+        distance = Vector2d(self.pos, target_pose)
+        self.turn_abs(distance.angle, TURN_SPEED)
+        pos_neg = copysign(1,cos(distance.angle))
+        while distance.magnitude>10:
+            self.l_motor.run(MIN_SPEED*pos_neg)
+            self.r_motor.run(MIN_SPEED*pos_neg)
+        self.stop()
+        
     def drive_to(self, x, y, speed):
+        target_pose = Pose2d(x,y,0)
+        distance = Vector2d(self.pos, target_pose)
+        self.turn_abs(distance.angle, TURN_SPEED)
+        initial_distance = distance.magnitude
+        pos_neg = copysign(1,cos(distance.angle))
         self.drive_abs(Pose2d(x, y, 0), speed)
-
+        while distance.magnitude>10:
+            avg_encoder_value = abs(initial_distance-distance.magnitude)
+            position_ratio = avg_encoder_value / (distance.magnitude * self.wheel_circ)
+            drive_speed_ratio = 1 - ((2 * position_ratio - pos_neg) ** 6)
+            drive_speed = pos_neg * speed * (drive_speed_ratio + 0.2)
+            angle = distance.angle - self.pos.theta
+            if self.speed < 20:
+                self.l_motor.run(drive_speed - angle * 5)
+                self.r_motor.run(drive_speed + angle * 5)
+            elif distance.magnitude < 10:
+                self.l_motor.run(drive_speed - angle * 5)
+                self.r_motor.run(drive_speed + angle * 5)
+            else:
+                self.l_motor.run(pos_neg * 1.1 * speed - angle * 5)
+                self.r_motor.run(pos_neg * 1.1 * speed + angle * 5)
+            self.update_pos()
+            distance = Vector2d(self.pos, target_pose)
+            wait(DT)
+        self.stop()
     def drive_rel(self, distance_cm, speed):
         target_dist_mm = distance_cm * 10
         start_l = self.l_motor.angle()
