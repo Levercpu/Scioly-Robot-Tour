@@ -16,12 +16,24 @@
     </persistenceIdMap>
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="14" />
+    <option name="cachedIndexableFilesCount" value="13" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "Levercpu"
+  }
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/Levercpu/Scioly-Robot-Tour.git",
+    "accountId": "0d68f6aa-3687-486c-bdc7-3843d7680208"
+  }
+}]]></component>
   <component name="McpProjectServerCommands">
     <commands />
     <urls />
@@ -50,6 +62,7 @@
     "ai.playground.ignore.import.keys.banner.in.settings": "true",
     "git-widget-placeholder": "LS__Stuff",
     "ignore.virus.scanning.warn.message": "true",
+    "last_opened_file_path": "C:/Users/lstro/coding/me/scioly/Scioly-Robot-Tour",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -77,6 +90,7 @@
       <updated>1770345697450</updated>
       <workItem from="1770345698618" duration="664000" />
       <workItem from="1770346384248" duration="4479000" />
+      <workItem from="1770350905829" duration="544000" />
     </task>
     <task id="LOCAL-00001" summary="yea">
       <option name="closed" value="true" />
@@ -86,7 +100,15 @@
       <option name="project" value="LOCAL" />
       <updated>1770350844714</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="yea">
+      <option name="closed" value="true" />
+      <created>1770350919080</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1770350919080</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
