@@ -1,5 +1,5 @@
 #!/usr/bin/env pybricks-micropython
-from math import sin, cos, pi, atan2, radians, hypot, copysign
+from math import sin, cos, pi, atan2, radians, sqrt, copysign
 from pybricks.hubs import EV3Brick
 from pybricks.ev3devices import Motor, GyroSensor
 from pybricks.parameters import Port
@@ -17,7 +17,7 @@ class Vector2d:
     def __init__(self, init_pos: Pose2d, final_pos: Pose2d):
         self.deltaX = final_pos.x - init_pos.x
         self.deltaY = final_pos.y - init_pos.y
-        self.magnitude = hypot(self.deltaX, self.deltaY)
+        self.magnitude = sqrt(self.deltaX**2+ self.deltaY**2)
         self.angle = atan2(self.deltaY, self.deltaX) * 180 / pi
 
 class Robot:
@@ -40,11 +40,13 @@ class Robot:
         self.rel_dist = 0
         self.rel_angle = 0
         self.speed = 0
-
+        self.count=0
+    def print_all(self):
+        print("x: " + str(self.pos.x) + ", y: " + str(self.pos.y) + ", angle: " + str(self.pos.theta) + ", speed: " + str(self.speed))
     def update_pos(self):
         cur_l = self.l_motor.angle()
         cur_r = self.r_motor.angle()
-        cur_gyro = self.gyro.angle()
+        cur_gyro = -self.gyro.angle()
 
         delta_l = (cur_l - self.prev_left) / 360.0 * self.wheel_circ
         delta_r = (cur_r - self.prev_right) / 360.0 * self.wheel_circ
@@ -63,7 +65,10 @@ class Robot:
         self.pos.y += dist_center * sin(avg_theta)
 
         self.rel_angle = self.pos.theta - self.start_angle
-        self.speed = self.wheel_circ * (self.l_motor.speed() + self.r_motor.speed()) / 2
+        self.speed = self.wheel_circ * (self.l_motor.speed() + self.r_motor.speed()) / 720
+        self.count += 1
+        if (self.count % 20 == 0):
+            self.print_all()
 
     def stop(self):
         self.l_motor.brake()
@@ -73,28 +78,30 @@ class Robot:
         wait(50)
         while self.pos.theta != target_angle:
             self.update_pos()
-            self.l_motor.run(round(MIN_SPEED * copysign(1,target_angle - self.pos.theta)))
-            self.r_motor.run(round(-MIN_SPEED * copysign(1, target_angle - self.pos.theta)))
+            self.l_motor.run(-round(MIN_SPEED * copysign(1,target_angle - self.pos.theta)))
+            self.r_motor.run(round(MIN_SPEED * copysign(1, target_angle - self.pos.theta)))
             wait(DT)
-            self.l_motor.brake()
-            self.r_motor.brake()
-            print(str(self.pos.theta) + " LEFT: " + str(self.l_motor.speed()) + " RIGHT: " + str(self.r_motor.speed()))
+        self.l_motor.brake()
+        self.r_motor.brake()
+        self.print_all()
 
     def turn_abs(self, target_angle, speed):
-        while abs(self.pos.theta) <= abs(target_angle) - 20:
+        initial_diff = target_angle - self.pos.theta
+        while abs(self.pos.theta-target_angle) > 5:
             self.update_pos()
-            turn_speed_ratio = 0.75 + (target_angle - self.pos.theta) / target_angle
+            turn_speed_ratio = 0.75 + (target_angle - self.pos.theta) / 90
             turn_speed = round(turn_speed_ratio * speed * copysign(1,self.pos.theta - target_angle))
-            self.l_motor.run(-turn_speed)
-            self.r_motor.run(turn_speed)
+            self.l_motor.run(turn_speed)
+            self.r_motor.run(-turn_speed)
             wait(DT)
-
+        self.l_motor.brake()
+        self.r_motor.brake()
         self.align_abs(target_angle)
         self.align_abs(target_angle)
 
         wait(100)
 
-        print(str(self.pos.theta) + " LEFT: " + str(self.l_motor.speed()) + " RIGHT: " + str(self.r_motor.speed()))
+        self.print_all()
 
     def turn_rel(self, degrees, speed):
         self.start_angle = self.pos.theta
@@ -103,9 +110,14 @@ class Robot:
 
     def drive_abs(self, target_pose: Pose2d, speed):
         distance = Vector2d(self.pos, target_pose)
+        self.turn_abs(distance.angle, TURN_SPEED)
         initial_distance = distance.magnitude
         pos_neg = copysign(1,cos(distance.angle))
-        while distance.magnitude>5:
+        count = 0
+        while distance.magnitude>10:
+            count+=1
+            if count%50==0:
+                self.turn_abs(distance.angle, TURN_SPEED)
             avg_encoder_value = abs(initial_distance-distance.magnitude)
             position_ratio = avg_encoder_value / (distance.magnitude * self.wheel_circ)
             drive_speed_ratio = 1 - ((2 * position_ratio - pos_neg) ** 6)
@@ -122,6 +134,10 @@ class Robot:
                 self.r_motor.run(pos_neg * 1.1 * speed + angle * 5)
             self.update_pos()
             distance = Vector2d(self.pos, target_pose)
+            wait(DT)
+        left_motor.brake
+        right_motor.brake
+        self.print_all()
 
     def drive_to(self, x, y, speed):
         self.drive_abs(Pose2d(x, y, 0), speed)
@@ -165,7 +181,7 @@ class Robot:
 
         wait(100)
 
-        print(str(self.pos.theta) + " LEFT: " + str(self.l_motor.speed()) + " RIGHT: " + str(self.r_motor.speed()))
+        self.print_all()
 
     def square(self, side_length_cm, speed):
         for _ in range(4):
@@ -178,14 +194,10 @@ ev3 = EV3Brick()
 DT = 20  # milliseconds loop time
 
 # Hardware Init
-try:
-    left_motor = Motor(Port.A)
-    right_motor = Motor(Port.D)
-    gyro_sensor = GyroSensor(Port.S1)
-except Exception as e:
-    print(f"Hardware Error: {e}")
-    wait(2000)
-    raise
+
+left_motor = Motor(Port.A)
+right_motor = Motor(Port.D)
+gyro_sensor = GyroSensor(Port.S1)
 
 MIN_SPEED = 10
 DRIVE_SPEED = 500 #mm/s
@@ -207,5 +219,6 @@ wait(500)
 print("Go.")
 
 # Action
-robot.drive_to(500, 500, 400)
+robot.drive_to(100,100,DRIVE_SPEED)
+print("Done")
 # robot.square(50, 300)
