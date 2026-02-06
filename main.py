@@ -1,5 +1,5 @@
 #!/usr/bin/env pybricks-micropython
-from math import sin, cos, pi, sqrt, arctan
+from math import sin, cos, pi, sqrt, atan
 from pybricks.hubs import EV3Brick
 from pybricks.ev3devices import Motor, UltrasonicSensor, GyroSensor
 from pybricks.parameters import Port, Stop, Direction, Button, Color
@@ -74,24 +74,24 @@ class Robot:
     def align_abs(self, target_angle):
         wait(50)
         while self.theta != target_angle:
-            self.updatePos(self)
+            self.updatePos()
             self.left_motor.run(min_speed * sign(target_angle - self.theta))
             self.right_motor.run(-min_speed * sign(target_angle - self.theta))
             wait(dt)  
         self.left_motor.brake()
         self.right_motor.brake()
-        print(str(self.theta + " LEFT: " + str(self.left_motor.speed()) + " RIGHT: " + str(self.right_motor.speed())))
+        print(str(self.theta) + " LEFT: " + str(self.left_motor.speed()) + " RIGHT: " + str(self.right_motor.speed()))
     def align_rel(self, target_angle):
         wait(50)
         while self.rel_angle != target_angle:
-            self.updatePos(self)
+            self.updatePos()
             self.left_motor.run(min_speed * sign(target_angle - self.rel_angle))
             self.right_motor.run(-min_speed * sign(target_angle - self.rel_angle))
             wait(dt)  
         self.left_motor.brake()
         self.right_motor.brake()
 
-        print(str(self.theta + " LEFT: " + str(self.left_motor.speed()) + " RIGHT: " + str(self.right_motor.speed())))
+        print(str(self.theta) + " LEFT: " + str(self.left_motor.speed()) + " RIGHT: " + str(self.right_motor.speed()))
     def turn_abs(self, target_angle, speed):
         while abs(self.theta) <= abs(target_angle) - 20:
             self.updatePos()
@@ -106,7 +106,7 @@ class Robot:
         
         wait(100)
         
-        print(str(self.theta + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed())))
+        print(str(self.theta) + " LEFT: " + str(self.left_motor.speed()) + " RIGHT: " + str(self.right_motor.speed()))
     def turn_rel(self, degrees, speed):
         self.start_angle = 0
         while abs(self.rel_angle) <= abs(degrees) - 20:
@@ -122,7 +122,7 @@ class Robot:
         
         wait(100)
 
-        print(str(self.theta + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed())))
+        print(str(self.theta) + " LEFT: " + str(self.left_motor.speed()) + " RIGHT: " + str(self.right_motor.speed()))
     def drive_abs(self, target_pose: Pose2d, speed):
         distance = Vector2d(self.pos, target_pose)
         initial_distance = distance.magnitude
@@ -178,13 +178,18 @@ class Robot:
 
         wait(100)
 
-        print(str(self.theta + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed())))
+        print(str(self.theta) + " LEFT: " + str(self.left_motor.speed()) + " RIGHT: " + str(self.right_motor.speed()))
     def distance(self):
         return (self.left_motor.angle()-self.start_left+self.right_motor.angle()-self.start_right)/2
     def square(self,drive_distance, drive_speed, turn_angle, turn_speed):
-        for i in range(4):
-            self.drive_rel(drive_distance, drive_speed)
-            self.turn_rel(turn_angle, turn_speed)
+        self.drive_rel(drive_distance, drive_speed)
+        self.turn_rel(turn_angle, turn_speed)
+        self.drive_rel(drive_distance, drive_speed)
+        self.turn_rel(turn_angle, turn_speed)
+        self.drive_rel(drive_distance, drive_speed)
+        self.turn_rel(turn_angle, turn_speed)
+        self.drive_rel(drive_distance, drive_speed)
+        self.turn_rel(turn_angle, turn_speed)
 
 class Pose2d:
     def __init__(self, xPos, yPos, theta):
@@ -197,7 +202,7 @@ class Vector2d:
         self.deltaX = final_pos.xPos - init_pos.xPos
         self.deltaY = final_pos.yPos - init_pos.yPos
         self.magnitude = sqrt(self.deltaX,self.deltaY)
-        self.angle = arctan(self.deltaY/self.deltaX) * 180 / pi
+        self.angle = atan(self.deltaY/self.deltaX) * 180 / pi
 # functions
 
 def sign(x):
@@ -209,4 +214,4 @@ def sign(x):
         return -1
 
 robot = Robot(axle_track, wheel_circum, left_motor, right_motor, gyro_sensor)
-robot.square()
+robot.drive_to(50, 50, 500)
