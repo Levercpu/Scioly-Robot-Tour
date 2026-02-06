@@ -245,5 +245,6 @@ print("Go.")
 
 # Action
 robot.drive_to(100,100,DRIVE_SPEED)
+robot.final_drive_align(100,100)
 print("Done")
 # robot.square(50, 300)
