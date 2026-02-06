@@ -6,16 +6,14 @@ from pybricks.tools import wait, StopWatch, DataLog
 
 '''
 TO-DO LIST
-- fix left turn
-- test on actual track
-- time drives and turns
+- figure out highest accurate speeds for drives and turns
 
 TIMES:
-- turn R: 1.3 sec
-- turn L: 4.9 sec
-- drive F 50: 3.2 sec
-- drive F 100: 5.2 sec
-- drive F 150: 7.35 sec
+- turn R:
+- turn L:
+- drive F 50:
+- drive F 100:
+- drive F 150:
 - drive B 50:
 - drive B 100:
 - drive B 150:
@@ -62,8 +60,13 @@ def align_angle(target_angle):
 def turn(degrees, speed):
     gyro_sensor.reset_angle(0)
     timer.reset()
+
+    if(sign(degrees) == 1):
+        offset = 20
+    elif(sign(degrees) == -1):
+        offset = 35
         
-    while abs(gyro_sensor.angle()) <= abs(degrees) - 20:
+    while abs(gyro_sensor.angle()) <= abs(degrees) - offset:
         turn_speed_ratio = 0.75 + (degrees - gyro_sensor.angle()) / degrees
         turn_speed = turn_speed_ratio * speed * sign(gyro_sensor.angle() - degrees)
 
@@ -89,7 +92,7 @@ def drive(distance, speed):
 
     pos_neg = sign(distance)
 
-    while abs((left_motor.angle() + right_motor.angle()) / 2) < abs(distance) * wheel_circum - 40: # constant at the end is used to offset error
+    while abs((left_motor.angle() + right_motor.angle()) / 2) < abs(distance) * wheel_circum - 70: # 70 for 750 speed, 25 for 500
         avg_encoder_value = abs((left_motor.angle() + right_motor.angle()) / 2)
         position_ratio = avg_encoder_value / (distance * wheel_circum)
         drive_speed_ratio = 1 - ((2 * position_ratio - pos_neg) ** 6)
@@ -97,16 +100,16 @@ def drive(distance, speed):
 
         if (avg_encoder_value < 209):
             print("ACC " + str(gyro_sensor.angle()) + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed()))
-            left_motor.run(drive_speed - gyro_sensor.angle() * 5)
-            right_motor.run(drive_speed + gyro_sensor.angle() * 5)
+            left_motor.run(drive_speed - gyro_sensor.angle() * speed / 50)
+            right_motor.run(drive_speed + gyro_sensor.angle() * speed / 50)
         elif (avg_encoder_value > (abs(distance) - 10) * 20.9):
             print("DEC " + str(gyro_sensor.angle()) + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed()))
-            left_motor.run(drive_speed - gyro_sensor.angle() * 5)
-            right_motor.run(drive_speed + gyro_sensor.angle() * 5)
+            left_motor.run(drive_speed - gyro_sensor.angle() * speed / 50)
+            right_motor.run(drive_speed + gyro_sensor.angle() * speed / 50)
         else:
             print("MAX " + str(gyro_sensor.angle()) + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed()))
-            left_motor.run(pos_neg * 1.1 * speed - gyro_sensor.angle() * 5)
-            right_motor.run(pos_neg * 1.1 * speed + gyro_sensor.angle() * 5)
+            left_motor.run(pos_neg * 1.1 * speed - gyro_sensor.angle() * speed / 50)
+            right_motor.run(pos_neg * 1.1 * speed + gyro_sensor.angle() * speed / 50)
 
     left_motor.brake()
     right_motor.brake()
@@ -135,29 +138,69 @@ def check_gyro_drift():
     print("Gyro Drift per Second: " + str(gyro_sensor.angle() / 5))
 
 #sci oly rulebook setup
-drive(77, 500)
-turn(-90, 250)
-drive(50, 500)
-turn(-90, 250)
-drive(50, 500)
-turn(90, 250)
-drive(50, 500)
-drive(-50, 500)
-turn(90, 250)
-drive(50, 500)
-turn(90, 250)
-drive(100, 500)
-turn(90, 250)
-drive(50, 500)
-turn(-90, 250)
-drive(50, 500)
-turn(-90, 250)
-drive(50, 500)
-drive(-50, 500)
-turn(-90, 250)
-drive(50, 500)
-turn(90, 250)
-drive(150, 500)
-turn(-90, 250)
-drive(-50, 500)
-drive(150, 500)
+def rulebook_track(drive_speed = 750, turn_speed = 250):
+    drive(77, drive_speed)
+    turn(-90, turn_speed)
+    drive(50, drive_speed)
+    turn(-90, turn_speed)
+    drive(50, drive_speed)
+    turn(90, turn_speed)
+    drive(50, drive_speed)
+    drive(-50, drive_speed)
+    turn(90, turn_speed)
+    drive(50, drive_speed)
+    turn(90, turn_speed)
+    drive(100, drive_speed)
+    turn(90, turn_speed)
+    drive(50, drive_speed)
+    turn(-90, turn_speed)
+    drive(50, drive_speed)
+    turn(-90, turn_speed)
+    drive(50, drive_speed)
+    drive(-50, drive_speed)
+    turn(-90, turn_speed)
+    drive(50, drive_speed)
+    turn(90, turn_speed)
+    drive(150, drive_speed)
+    turn(-90, turn_speed)
+    drive(-50, drive_speed)
+    drive(150, drive_speed)
+
+def purdue_track(drive_speed = 750, turn_speed = 250):
+    drive(27, drive_speed)
+    turn(90, turn_speed)
+    drive(150, drive_speed)
+    turn(-90, turn_speed)
+    drive(50, drive_speed)
+    drive(-50, drive_speed)
+    turn(-90, turn_speed)
+    drive(200, drive_speed)
+    turn(90, turn_speed)
+    drive(150, drive_speed)
+    turn(90, turn_speed)
+    drive(200, drive_speed)
+    turn(90, turn_speed)
+    drive(50, drive_speed)
+    drive(-50, drive_speed)
+    turn(90, turn_speed)
+    drive(100, drive_speed)
+    turn(-90, turn_speed)
+    drive(50, drive_speed)
+    turn(90, turn_speed)
+    drive(50, drive_speed)
+
+def uchicago_track(drive_speed = 750, turn_speed = 250):
+
+
+
+    
+
+
+
+
+
+
+
+
+
+rulebook_track(750, 250)
