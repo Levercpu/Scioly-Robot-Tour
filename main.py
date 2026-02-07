@@ -215,7 +215,49 @@ def uchicago_track(drive_speed = 750, turn_speed = 250):
     turn(90, turn_speed)
     drive(50, drive_speed)
 
-
-    
-
-purdue_track()
+def ut_austin_track(drive_speed = 750, turn_speed = 250):
+    drive(27, drive_speed)
+    turn(-90, turn_speed)
+    drive(50, drive_speed)
+    turn(90, turn_speed)
+    drive(50, drive_speed)
+    turn(-90, turn_speed)
+    drive(50, drive_speed)
+    turn(-90, turn_speed)
+    drive(50, drive_speed)
+    #reached gate 1
+    drive(-50, drive_speed)
+    turn(-90, turn_speed)
+    drive(50, drive_speed)
+    turn(-90, turn_speed)
+    drive(50, drive_speed)
+    turn(90, turn_speed)
+    drive(50, drive_speed)
+    #reached gate 3
+    turn(90, turn_speed)
+    drive(50, drive_speed)
+    turn(-90, turn_speed)
+    drive(100, drive_speed)
+    turn(90, turn_speed)
+    drive(50, drive_speed)
+    #reached gate 4
+    drive(-50, drive_speed)
+    turn(90, turn_speed)
+    drive(50, drive_speed)
+    turn(90, turn_speed)
+    drive(100, drive_speed)
+    turn(-90, turn_speed)
+    drive(150, drive_speed)
+    turn(-90, turn_speed)
+    drive(50, drive_speed)
+    #reached gate 2
+    drive(-50, drive_speed)
+    turn(-90, turn_speed)
+    drive(150, drive_speed)
+    turn(90, turn_speed)
+    drive(50, drive_speed)
+    turn(-90, turn_speed)
+    drive(50, drive_speed)
+    turn(-90, turn_speed)
+    drive(50, drive_speed)
+    #reached end point
