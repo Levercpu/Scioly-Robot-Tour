@@ -5,18 +5,7 @@ from pybricks.parameters import Port, Button
 from pybricks.tools import wait, StopWatch, DataLog
 
 '''
-TO-DO LIST
-- figure out highest accurate speeds for drives and turns
-
-TIMES:
-- turn R:
-- turn L:
-- drive F 50:
-- drive F 100:
-- drive F 150:
-- drive B 50:
-- drive B 100:
-- drive B 150:
+4 SECONDS BETWEEN RUNNING CODE AND ROBOT MOVING
 '''
 
 #objects
