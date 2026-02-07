@@ -100,16 +100,16 @@ def drive(distance, speed):
 
         if (avg_encoder_value < 209):
             print("ACC " + str(gyro_sensor.angle()) + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed()))
-            left_motor.run(drive_speed - gyro_sensor.angle() * speed / 50)
-            right_motor.run(drive_speed + gyro_sensor.angle() * speed / 50)
+            left_motor.run(drive_speed - gyro_sensor.angle() * speed / 40)
+            right_motor.run(drive_speed + gyro_sensor.angle() * speed / 40)
         elif (avg_encoder_value > (abs(distance) - 10) * 20.9):
             print("DEC " + str(gyro_sensor.angle()) + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed()))
-            left_motor.run(drive_speed - gyro_sensor.angle() * speed / 50)
-            right_motor.run(drive_speed + gyro_sensor.angle() * speed / 50)
+            left_motor.run(drive_speed - gyro_sensor.angle() * speed / 40)
+            right_motor.run(drive_speed + gyro_sensor.angle() * speed / 40)
         else:
             print("MAX " + str(gyro_sensor.angle()) + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed()))
-            left_motor.run(pos_neg * 1.1 * speed - gyro_sensor.angle() * speed / 50)
-            right_motor.run(pos_neg * 1.1 * speed + gyro_sensor.angle() * speed / 50)
+            left_motor.run(pos_neg * 1.1 * speed - gyro_sensor.angle() * speed / 40)
+            right_motor.run(pos_neg * 1.1 * speed + gyro_sensor.angle() * speed / 40)
 
     left_motor.brake()
     right_motor.brake()
@@ -190,17 +190,43 @@ def purdue_track(drive_speed = 750, turn_speed = 250):
     drive(50, drive_speed)
 
 def uchicago_track(drive_speed = 750, turn_speed = 250):
-
+    drive(27, drive_speed)
+    turn(90, turn_speed)
+    drive(50, drive_speed)
+    turn(-90, turn_speed)
+    drive(50, drive_speed)
+    drive(-50, drive_speed)
+    turn(-90, turn_speed)
+    drive(150, drive_speed)
+    drive(50, drive_speed)
+    turn(90, turn_speed)
+    drive(100, drive_speed)
+    turn(90, turn_speed)
+    drive(100, drive_speed)
+    turn(-90, turn_speed)
+    drive(50, drive_speed)
+    drive(-50, drive_speed)
+    turn(-90, turn_speed)
+    drive(50, drive_speed)
+    turn(90, turn_speed)
+    drive(50, drive_speed)
+    turn(-90, turn_speed)
+    drive(100, drive_speed)
+    drive(-50, drive_speed)
+    turn(90, turn_speed)
+    drive(50, drive_speed)
+    turn(90, turn_speed)
+    drive(100, drive_speed)
+    drive(-150, drive_speed)
+    drive(50, drive_speed)
+    turn(90, turn_speed)
+    drive(150, drive_speed)
+    turn(90, turn_speed)
+    drive(50, drive_speed)
+    turn(90, turn_speed)
+    drive(50, drive_speed)
 
 
     
 
-
-
-
-
-
-
-
-
-rulebook_track(750, 250)
+purdue_track()
