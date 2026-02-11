@@ -215,7 +215,7 @@ def uchicago_track(drive_speed = 750, turn_speed = 250):
     turn(90, turn_speed)
     drive(50, drive_speed)
 
-def ut_austin_track(drive_speed = 750, turn_speed = 250):
+def harvard_track(drive_speed = 750, turn_speed = 250):
     drive(27, drive_speed)
     turn(-90, turn_speed)
     drive(50, drive_speed)
