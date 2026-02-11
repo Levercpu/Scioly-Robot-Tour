@@ -141,6 +141,7 @@ def move_to(x_distance, y_distance, drive_speed = drive_speed, turn_speed = turn
     drive(sign(y_distance) * move_distance, drive_speed)
     turn(turn_angle, -1 * sign(x_distance * y_distance) * turn_speed)
 
+#angles are messed up
 def go_to(x_coord, y_coord, drive_speed = drive_speed, turn_speed = turn_speed):
     x_distance = x_coord - position[0]
     y_distance = y_coord - position[1]
