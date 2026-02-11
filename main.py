@@ -3,10 +3,17 @@ from pybricks.hubs import EV3Brick
 from pybricks.ev3devices import Motor, GyroSensor
 from pybricks.parameters import Port, Button
 from pybricks.tools import wait, StopWatch, DataLog
+from math import sqrt, atan
 
 '''
 4 SECONDS BETWEEN RUNNING CODE AND ROBOT MOVING
+
+TO-DO:
+- test faster drive and turn speeds
+- absolute positioning?
 '''
+
+position = [1, 1]
 
 #objects
 ev3 = EV3Brick()
@@ -19,7 +26,7 @@ timer = StopWatch()
 #constants
 wheel_circum = 20.9 #cm
 min_speed = 10 #mm/s
-drive_speed = 500 #mm/s
+drive_speed = 750 #mm/s
 turn_speed = 250 #mm/s
 
 
@@ -46,7 +53,7 @@ def align_angle(target_angle):
 
     print(str(gyro_sensor.angle()) + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed()))
 
-def turn(degrees, speed):
+def turn(degrees, speed = turn_speed):
     gyro_sensor.reset_angle(0)
     timer.reset()
 
@@ -73,7 +80,7 @@ def turn(degrees, speed):
     print(timer.time())
 
 
-def drive(distance, speed):
+def drive(distance, speed = drive_speed):
     gyro_sensor.reset_angle(0)
     left_motor.reset_angle(0)
     right_motor.reset_angle(0)
@@ -112,7 +119,7 @@ def drive(distance, speed):
     print(timer.time())
 
 
-def square(drive_distance, drive_speed, turn_angle, turn_speed):
+def square(drive_distance, turn_angle, drive_speed = drive_speed, turn_speed = turn_speed):
     for i in range(4):
         drive(drive_distance, drive_speed)
         turn(turn_angle, turn_speed)
@@ -126,138 +133,29 @@ def check_gyro_drift():
 
     print("Gyro Drift per Second: " + str(gyro_sensor.angle() / 5))
 
-#sci oly rulebook setup
-def rulebook_track(drive_speed = 750, turn_speed = 250):
-    drive(77, drive_speed)
-    turn(-90, turn_speed)
-    drive(50, drive_speed)
-    turn(-90, turn_speed)
-    drive(50, drive_speed)
-    turn(90, turn_speed)
-    drive(50, drive_speed)
-    drive(-50, drive_speed)
-    turn(90, turn_speed)
-    drive(50, drive_speed)
-    turn(90, turn_speed)
-    drive(100, drive_speed)
-    turn(90, turn_speed)
-    drive(50, drive_speed)
-    turn(-90, turn_speed)
-    drive(50, drive_speed)
-    turn(-90, turn_speed)
-    drive(50, drive_speed)
-    drive(-50, drive_speed)
-    turn(-90, turn_speed)
-    drive(50, drive_speed)
-    turn(90, turn_speed)
-    drive(150, drive_speed)
-    turn(-90, turn_speed)
-    drive(-50, drive_speed)
-    drive(150, drive_speed)
+def move_to(x_distance, y_distance, drive_speed = drive_speed, turn_speed = turn_speed):
+    move_distance = sqrt(x_distance ** 2 + y_distance ** 2)
+    turn_angle = atan(y_distance / x_distance)
 
-def purdue_track(drive_speed = 750, turn_speed = 250):
-    drive(27, drive_speed)
-    turn(90, turn_speed)
-    drive(150, drive_speed)
-    turn(-90, turn_speed)
-    drive(50, drive_speed)
-    drive(-50, drive_speed)
-    turn(-90, turn_speed)
-    drive(200, drive_speed)
-    turn(90, turn_speed)
-    drive(150, drive_speed)
-    turn(90, turn_speed)
-    drive(200, drive_speed)
-    turn(90, turn_speed)
-    drive(50, drive_speed)
-    drive(-50, drive_speed)
-    turn(90, turn_speed)
-    drive(100, drive_speed)
-    turn(-90, turn_speed)
-    drive(50, drive_speed)
-    turn(90, turn_speed)
-    drive(50, drive_speed)
+    turn(sign(x_distance * y_distance) * turn_angle, turn_speed)
+    drive(sign(y_distance) * move_distance, drive_speed)
+    turn(turn_angle, -1 * sign(x_distance * y_distance) * turn_speed)
 
-def uchicago_track(drive_speed = 750, turn_speed = 250):
-    drive(27, drive_speed)
-    turn(90, turn_speed)
-    drive(50, drive_speed)
-    turn(-90, turn_speed)
-    drive(50, drive_speed)
-    drive(-50, drive_speed)
-    turn(-90, turn_speed)
-    drive(150, drive_speed)
-    drive(50, drive_speed)
-    turn(90, turn_speed)
-    drive(100, drive_speed)
-    turn(90, turn_speed)
-    drive(100, drive_speed)
-    turn(-90, turn_speed)
-    drive(50, drive_speed)
-    drive(-50, drive_speed)
-    turn(-90, turn_speed)
-    drive(50, drive_speed)
-    turn(90, turn_speed)
-    drive(50, drive_speed)
-    turn(-90, turn_speed)
-    drive(100, drive_speed)
-    drive(-50, drive_speed)
-    turn(90, turn_speed)
-    drive(50, drive_speed)
-    turn(90, turn_speed)
-    drive(100, drive_speed)
-    drive(-150, drive_speed)
-    drive(50, drive_speed)
-    turn(90, turn_speed)
-    drive(150, drive_speed)
-    turn(90, turn_speed)
-    drive(50, drive_speed)
-    turn(90, turn_speed)
-    drive(50, drive_speed)
+def go_to(x_coord, y_coord, drive_speed = drive_speed, turn_speed = turn_speed):
+    x_distance = x_coord - position[0]
+    y_distance = y_coord - position[1]
+    drive_distance = sqrt(x_distance ** 2 + y_distance ** 2)
+    turn_angle = atan(y_distance / x_distance)
 
-def harvard_track(drive_speed = 750, turn_speed = 250):
-    drive(27, drive_speed)
-    turn(-90, turn_speed)
-    drive(50, drive_speed)
-    turn(90, turn_speed)
-    drive(50, drive_speed)
-    turn(-90, turn_speed)
-    drive(50, drive_speed)
-    turn(-90, turn_speed)
-    drive(50, drive_speed)
-    #reached gate 1
-    drive(-50, drive_speed)
-    turn(-90, turn_speed)
-    drive(50, drive_speed)
-    turn(-90, turn_speed)
-    drive(50, drive_speed)
-    turn(90, turn_speed)
-    drive(50, drive_speed)
-    #reached gate 3
-    turn(90, turn_speed)
-    drive(50, drive_speed)
-    turn(-90, turn_speed)
-    drive(100, drive_speed)
-    turn(90, turn_speed)
-    drive(50, drive_speed)
-    #reached gate 4
-    drive(-50, drive_speed)
-    turn(90, turn_speed)
-    drive(50, drive_speed)
-    turn(90, turn_speed)
-    drive(100, drive_speed)
-    turn(-90, turn_speed)
-    drive(150, drive_speed)
-    turn(-90, turn_speed)
-    drive(50, drive_speed)
-    #reached gate 2
-    drive(-50, drive_speed)
-    turn(-90, turn_speed)
-    drive(150, drive_speed)
-    turn(90, turn_speed)
-    drive(50, drive_speed)
-    turn(-90, turn_speed)
-    drive(50, drive_speed)
-    turn(-90, turn_speed)
-    drive(50, drive_speed)
-    #reached end point
+    turn(sign(x_distance * y_distance) * turn_angle, turn_speed)
+    drive(sign(y_distance) * move_distance, drive_speed)
+    turn(turn_angle, -1 * sign(x_distance * y_distance) * turn_speed)
+
+
+    position[0] = x_coord
+    position[1] = y_coord 
+
+go_to(2, 3)
+go_to(4, 2)
+go_to(3, 4)
+go_to(1, 3)
