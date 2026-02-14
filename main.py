@@ -3,7 +3,7 @@ from pybricks.hubs import EV3Brick
 from pybricks.ev3devices import Motor, GyroSensor
 from pybricks.parameters import Port, Button
 from pybricks.tools import wait, StopWatch, DataLog
-from math import sqrt, atan
+from math import sqrt, atan2, pi
 
 '''
 4 SECONDS BETWEEN RUNNING CODE AND ROBOT MOVING
@@ -135,22 +135,28 @@ def check_gyro_drift():
 
 def move_to(x_distance, y_distance, drive_speed = drive_speed, turn_speed = turn_speed):
     move_distance = sqrt(x_distance ** 2 + y_distance ** 2)
-    turn_angle = atan(y_distance / x_distance)
+    turn_angle = atan2(y_distance / x_distance)
 
     turn(sign(x_distance * y_distance) * turn_angle, turn_speed)
     drive(sign(y_distance) * move_distance, drive_speed)
     turn(turn_angle, -1 * sign(x_distance * y_distance) * turn_speed)
+
+
+def filtered_gyro():
+    return (sign(gyro_sensor.angle()) * (abs(gyro_sensor.angle()) % 360)) % 360
+
 
 #angles are messed up
 def go_to(x_coord, y_coord, drive_speed = drive_speed, turn_speed = turn_speed):
-    x_distance = x_coord - position[0]
-    y_distance = y_coord - position[1]
+    x_distance = 10 * (x_coord - position[0])
+    y_distance = 10 * (y_coord - position[1])
     drive_distance = sqrt(x_distance ** 2 + y_distance ** 2)
-    turn_angle = atan(y_distance / x_distance)
+    turn_angle = round(90 - atan2(y_distance, x_distance) * 180 / pi)
 
     turn(sign(x_distance * y_distance) * turn_angle, turn_speed)
-    drive(sign(y_distance) * move_distance, drive_speed)
-    turn(turn_angle, -1 * sign(x_distance * y_distance) * turn_speed)
+    drive(sign(y_distance) * drive_distance, drive_speed)
+    drive(-1 * sign(y_distance) * drive_distance, drive_speed)
+
 
 
     position[0] = x_coord
