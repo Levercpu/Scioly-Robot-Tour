@@ -18,7 +18,7 @@ class Vector2d:
         self.deltaX = final_pos.x - init_pos.x
         self.deltaY = final_pos.y - init_pos.y
         self.magnitude = sqrt(self.deltaX**2+ self.deltaY**2)
-        self.angle = atan2(self.deltaY, self.deltaX) * 180 / pi
+        self.angle = atan2(self.deltaY, self.deltaX)
 
 class Robot:
     def __init__(self, wheel_diam, axle_track, l_motor: Motor, r_motor: Motor, gyro: GyroSensor):
@@ -76,6 +76,7 @@ class Robot:
 
     def align_abs(self, target_angle):
         wait(50)
+        target_angle = round(target_angle)
         while self.pos.theta != target_angle:
             self.update_pos()
             self.l_motor.run(-round(MIN_SPEED * copysign(1,target_angle - self.pos.theta)))
@@ -86,6 +87,7 @@ class Robot:
 
     def turn_abs(self, target_angle, speed):
         initial_diff = target_angle - self.pos.theta
+        target_angle = round(target_angle)
         while abs(self.pos.theta-target_angle) > 5:
             self.update_pos()
             turn_speed_ratio = 0.75 + (target_angle - self.pos.theta) / 90
@@ -108,7 +110,7 @@ class Robot:
 
     def drive_abs(self, target_pose: Pose2d, speed):
         distance = Vector2d(self.pos, target_pose)
-        self.turn_abs(distance.angle, TURN_SPEED)
+        self.turn_abs(distance.angle*180/pi, TURN_SPEED)
         initial_distance = distance.magnitude
         pos_neg = copysign(1,cos(distance.angle))
         while distance.magnitude>10:
@@ -116,7 +118,7 @@ class Robot:
             position_ratio = avg_encoder_value / (distance.magnitude * self.wheel_circ)
             drive_speed_ratio = 1 - ((2 * position_ratio - pos_neg) ** 6)
             drive_speed = pos_neg * speed * (drive_speed_ratio + 0.2)
-            angle = distance.angle - self.pos.theta
+            angle = distance.angle*180/pi - self.pos.theta
             if self.speed < 20:
                 self.l_motor.run(drive_speed - angle * 5)
                 self.r_motor.run(drive_speed + angle * 5)
@@ -131,12 +133,12 @@ class Robot:
             wait(DT)
         self.stop()
         self.print_all()
-    def final_drive_align(self, x, y, speed):
+    def final_drive_align(self, x, y):
         target_pose = Pose2d(x,y,0)
         distance = Vector2d(self.pos, target_pose)
-        self.turn_abs(distance.angle, TURN_SPEED)
+        self.turn_abs(distance.angle*180/pi, TURN_SPEED)
         pos_neg = copysign(1,cos(distance.angle))
-        while distance.magnitude>10:
+        while distance.magnitude>2:
             self.l_motor.run(MIN_SPEED*pos_neg)
             self.r_motor.run(MIN_SPEED*pos_neg)
         self.stop()
@@ -144,16 +146,16 @@ class Robot:
     def drive_to(self, x, y, speed):
         target_pose = Pose2d(x,y,0)
         distance = Vector2d(self.pos, target_pose)
-        self.turn_abs(distance.angle, TURN_SPEED)
+        self.turn_abs(distance.angle*180/pi, TURN_SPEED)
         initial_distance = distance.magnitude
         pos_neg = copysign(1,cos(distance.angle))
         self.drive_abs(Pose2d(x, y, 0), speed)
         while distance.magnitude>10:
             avg_encoder_value = abs(initial_distance-distance.magnitude)
-            position_ratio = avg_encoder_value / (distance.magnitude * self.wheel_circ)
+            position_ratio = avg_encoder_value / (initial_distance * self.wheel_circ)
             drive_speed_ratio = 1 - ((2 * position_ratio - pos_neg) ** 6)
             drive_speed = pos_neg * speed * (drive_speed_ratio + 0.2)
-            angle = distance.angle - self.pos.theta
+            angle = distance.angle*180/pi - self.pos.theta
             if self.speed < 20:
                 self.l_motor.run(drive_speed - angle * 5)
                 self.r_motor.run(drive_speed + angle * 5)
@@ -213,6 +215,19 @@ class Robot:
             self.drive_rel(side_length_cm, speed)
             self.turn_rel(90, speed / 2)
 
+def run_Track(robot:Robot):
+    robot.drive_to(77,0,DRIVE_SPEED)
+    robot.drive_to(27,100,DRIVE_SPEED)
+    robot.drive_to(77,0,DRIVE_SPEED)
+    robot.drive_to(27,-100,DRIVE_SPEED)
+    robot.drive_to(77,-100,DRIVE_SPEED)
+    robot.drive_to(27,-100,DRIVE_SPEED)
+    robot.drive_to(50,-50,DRIVE_SPEED)
+    robot.drive_to(100,-50,DRIVE_SPEED)
+    robot.drive_to(177,-100,DRIVE_SPEED)
+    robot.drive_to(177,50,DRIVE_SPEED)
+
+
 # --- SETUP & CONSTANTS ---
 
 ev3 = EV3Brick()
@@ -225,7 +240,7 @@ right_motor = Motor(Port.D)
 gyro_sensor = GyroSensor(Port.S1)
 
 MIN_SPEED = 10
-DRIVE_SPEED = 500 #mm/s
+DRIVE_SPEED = 200 #mm/s
 TURN_SPEED = 250 #mm/s
 # Robot Physical Constants (mm)
 WHEEL_DIAMETER_MM = 66.5 # Approx EV3 standard, adjust as needed (orig was 20.9cm circ -> ~66.5mm diam)
@@ -244,7 +259,8 @@ wait(500)
 print("Go.")
 
 # Action
-robot.drive_to(100,100,DRIVE_SPEED)
-robot.final_drive_align(100,100)
+#robot.drive_to(100,100,DRIVE_SPEED)
+#robot.final_drive_align(100,100)
 print("Done")
-# robot.square(50, 300)
+robot.square(50, 200)
+# run_Track(robot)
