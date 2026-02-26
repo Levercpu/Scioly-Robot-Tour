@@ -1,8 +1,8 @@
 #!/usr/bin/env pybricks-micropython
 from pybricks.hubs import EV3Brick
 from pybricks.ev3devices import Motor, GyroSensor
-from pybricks.parameters import Port, Button
-from pybricks.tools import wait, StopWatch, DataLog
+from pybricks.parameters import Port
+from pybricks.tools import wait, StopWatch
 
 '''
 4 SECONDS BETWEEN RUNNING CODE AND ROBOT MOVING
@@ -28,7 +28,7 @@ wheel_circum = 20.9 #cm
 min_speed = 10 #mm/s
 drive_speed = 750 #mm/s
 turn_speed = 250 #mm/s
-square_side = 25 #cm
+square_side = 20 #cm
 
 
 # functions
@@ -142,9 +142,9 @@ def check_gyro_drift():
 
     print("Gyro Drift per Second: " + str(gyro_sensor.angle() / 5))
 
-def go_to(x_coord, y_coord, drive_speed = drive_speed, turn_speed = turn_speed):
-    ver_distance = square_side * (y_coord - position[1])
-    hor_distance = square_side * (x_coord - position[0])
+def go_to(x, y, drive_speed = drive_speed, turn_speed = turn_speed):
+    ver_distance = square_side * (y - position[1])
+    hor_distance = square_side * (x - position[0])
 
     initial_angle = filtered_gyro()
 
@@ -165,12 +165,36 @@ def go_to(x_coord, y_coord, drive_speed = drive_speed, turn_speed = turn_speed):
         turn(calc_turn, turn_speed)
         align_angle(target)
         drive(abs(ver_distance + hor_distance), drive_speed)
+        align_angle(target)
 
     
 
-    position[0] = x_coord
-    position[1] = y_coord 
+    position[0] = x
+    position[1] = y 
 
 
+def start(x, y):
+    gyro_sensor.reset_angle(0)
+
+    drive(27)
+    align_angle(0)
+
+    position[0] = x
+    position[1] = y
+
+start(3, 1)
+go_to(3, 2)
+go_to(2, 2)
+go_to(2, 1)
+go_to(1, 1)
 go_to(2, 1)
 go_to(2, 2)
+go_to(4, 2)
+go_to(4, 1)
+go_to(5, 1)
+go_to(5, 2)
+go_to(5, 1)
+go_to(4, 1)
+go_to(4, 4)
+go_to(5, 4)
+go_to(2, 4)
