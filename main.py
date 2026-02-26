@@ -26,8 +26,8 @@ timer = StopWatch()
 #constants
 wheel_circum = 20.9 #cm
 min_speed = 10 #mm/s
-drive_speed = 750 #mm/s
-turn_speed = 250 #mm/s
+run_drive_speed = 750 #mm/s
+run_turn_speed = 250 #mm/s
 square_side = 20 #cm
 
 
@@ -57,7 +57,7 @@ def align_angle(target_angle):
 
     print(str(gyro_sensor.angle()) + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed()))
 
-def turn(degrees, speed = turn_speed):
+def turn(degrees, speed = run_turn_speed):
     initial_angle = gyro_sensor.angle()
     timer.reset()
 
@@ -83,7 +83,7 @@ def turn(degrees, speed = turn_speed):
     print(timer.time())
 
 
-def drive(distance, speed = drive_speed):
+def drive(distance, speed = run_drive_speed):
     initial_angle = gyro_sensor.angle()
     left_motor.reset_angle(0)
     right_motor.reset_angle(0)
@@ -121,7 +121,7 @@ def drive(distance, speed = drive_speed):
     print(timer.time())
 
 
-def square(drive_distance, turn_angle, drive_speed = drive_speed, turn_speed = turn_speed):
+def square(drive_distance, turn_angle, drive_speed = run_drive_speed, turn_speed = run_turn_speed):
     initial_angle = gyro_sensor.angle()
     
     drive(drive_distance, drive_speed)
@@ -142,7 +142,7 @@ def check_gyro_drift():
 
     print("Gyro Drift per Second: " + str(gyro_sensor.angle() / 5))
 
-def go_to(x, y, drive_speed = drive_speed, turn_speed = turn_speed):
+def go_to(x, y, drive_speed = run_drive_speed, turn_speed = run_turn_speed):
     ver_distance = square_side * (y - position[1])
     hor_distance = square_side * (x - position[0])
 
