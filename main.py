@@ -65,6 +65,8 @@ def turn(degrees, speed = run_turn_speed):
         offset = 20
     elif(sign(degrees) == -1):
         offset = 35
+    else:
+        offset = 0
         
     while abs(gyro_sensor.angle() - initial_angle) <= abs(degrees) - offset:
         turn_speed_ratio = 0.75 + (degrees - (gyro_sensor.angle() - initial_angle)) / degrees
