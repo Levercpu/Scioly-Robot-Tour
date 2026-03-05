@@ -26,7 +26,7 @@ timer = StopWatch()
 #constants
 wheel_circum = 20.9 #cm
 min_speed = 10 #mm/s
-run_drive_speed = 750 #mm/s
+run_drive_speed = 600 #mm/s
 run_turn_speed = 250 #mm/s
 square_side = 20 #cm
 
@@ -58,6 +58,10 @@ def align_angle(target_angle):
     print(str(gyro_sensor.angle()) + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed()))
 
 def turn(degrees, speed = run_turn_speed):
+    # EARLY EXIT: Prevent ZeroDivisionError if commanded to turn 0 degrees
+    if degrees == 0:
+        return
+
     initial_angle = gyro_sensor.angle()
     timer.reset()
 
@@ -178,25 +182,31 @@ def go_to(x, y, drive_speed = run_drive_speed, turn_speed = run_turn_speed):
 def start(x, y):
     gyro_sensor.reset_angle(0)
 
-    drive(27)
+    drive((square_side / 2) + 2)
     align_angle(0)
 
     position[0] = x
     position[1] = y
 
-start(3, 1)
-go_to(3, 2)
-go_to(2, 2)
+# start(3, 1)
+# go_to(3, 2)
+# go_to(2, 2)
+# go_to(2, 1)
+# go_to(1, 1)
+# go_to(2, 1)
+# go_to(2, 2)
+# go_to(4, 2)
+# go_to(4, 1)
+# go_to(5, 1)
+# go_to(5, 2)
+# go_to(5, 1)
+# go_to(4, 1)
+# go_to(4, 4)
+# go_to(5, 4)
+# go_to(2, 4)
+
+start(1, 1)
 go_to(2, 1)
+go_to(2, 2)
+go_to(1, 2)
 go_to(1, 1)
-go_to(2, 1)
-go_to(2, 2)
-go_to(4, 2)
-go_to(4, 1)
-go_to(5, 1)
-go_to(5, 2)
-go_to(5, 1)
-go_to(4, 1)
-go_to(4, 4)
-go_to(5, 4)
-go_to(2, 4)
