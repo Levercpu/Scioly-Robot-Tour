@@ -12,6 +12,22 @@ def difference_deg(a_2, a_1):
         diff+=360
     diff-=180
     return diff
+def minimum_turn_angle(a_2,a_1):
+    diff = difference_deg(a_2,a_1)
+    if diff>90:
+        diff-=180
+    elif diff<-90:
+        diff+=180
+    return diff
+def minimum_turn_angle_abs(a_2,curr_angle):
+    diff = difference_deg(a_2,curr_angle)
+    if diff>90:
+        a_2-=180
+    elif diff<-90:
+        a_2+=180
+    if a_2>360:
+        a_2-=360
+    return a_2
 # --- CLASSES ---
 
 class Pose2d:
@@ -138,12 +154,9 @@ class Robot:
     def drive_abs(self, target_pose: Pose2d, speed):
         print("driving to", target_pose.x_cm, target_pose.y_cm)
         distance = Vector2d(self.pos, target_pose)
-        if abs(difference_deg(distance.angle*180/pi,self.pos.theta_deg))>90:
-            self.turn_abs(distance.angle*180/pi-180, TURN_SPEED)
-        else:
-            self.turn_abs(distance.angle*180/pi, TURN_SPEED)
         initial_distance = distance.magnitude
         pos_neg = copysign(1,cos(difference_deg(distance.angle,self.pos.theta_deg*pi/180)))
+        self.turn_abs(minimum_turn_angle_abs(distance.angle*180/pi,self.pos.theta_deg),TURN_SPEED)
         if pos_neg==1:
             print("forward")
         else:
@@ -155,20 +168,16 @@ class Robot:
             position_ratio = avg_encoder_value_pos / (distance.magnitude * self.wheel_circ)
             drive_speed_ratio = 1 - ((2 * position_ratio - 1) ** 6)
             drive_speed = pos_neg * speed * (drive_speed_ratio + 0.2)
-            angle_deg = difference_deg(distance.angle*180/pi, self.pos.theta_deg)
-            if angle_deg>90:
-                angle_deg-=180
-            elif angle_deg<-90:
-                angle_deg+=180
-            if self.speed < 20:
-                self.l_motor.run(drive_speed - angle_deg * 5)
-                self.r_motor.run(drive_speed + angle_deg * 5)
+            angle_error_deg = minimum_turn_angle(distance.angle*180/pi,self.pos.theta_deg)
+            if abs(self.speed) < 20:
+                self.l_motor.run(drive_speed - angle_error_deg * 5)
+                self.r_motor.run(drive_speed + angle_error_deg * 5)
             elif distance.magnitude < 10:
-                self.l_motor.run(drive_speed - angle_deg * 5)
-                self.r_motor.run(drive_speed + angle_deg * 5)
+                self.l_motor.run(drive_speed - angle_error_deg * 5)
+                self.r_motor.run(drive_speed + angle_error_deg * 5)
             else:
-                self.l_motor.run(pos_neg * 1.1 * speed - angle_deg * 5)
-                self.r_motor.run(pos_neg * 1.1 * speed + angle_deg * 5)
+                self.l_motor.run(pos_neg * 1.1 * speed - angle_error_deg * 5)
+                self.r_motor.run(pos_neg * 1.1 * speed + angle_error_deg * 5)
             wait(DT)
         self.stop()
         self.print_all()
@@ -251,6 +260,8 @@ class Robot:
         self.drive_to(-side_length_cm, 0, speed)
         self.drive_to(0, 0, speed)
         self.final_drive_align(0,0)
+    def square_abs_back(self,side_length_cm, speed):
+        self.drive_to(-side_length_cm, 0, speed)
 
 def run_track(robot2:Robot):
     robot2.drive_to(77, 0, DRIVE_SPEED)
@@ -299,5 +310,5 @@ print("Go.")
 #robot.drive_to(100,100,DRIVE_SPEED)
 #robot.final_drive_align(100,100)
 print("Done")
-robot.drive_to(-50,-50,400)
+robot.square_abs(50,DRIVE_SPEED)
 # run_Track(robot)
