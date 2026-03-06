@@ -4,6 +4,7 @@ from pybricks.hubs import EV3Brick
 from pybricks.ev3devices import Motor, GyroSensor
 from pybricks.parameters import Port
 from pybricks.tools import wait
+import random
 def difference_deg(a_2, a_1):
     diff = a_2-a_1+180
     while diff>360:
@@ -30,11 +31,16 @@ def minimum_turn_angle_abs(a_2,curr_angle):
     return a_2
 # --- CLASSES ---
 
+
+
+
 class Pose2d:
     def __init__(self, x_cm, y_cm, theta_deg):
         self.x_cm = x_cm
         self.y_cm = y_cm
         self.theta_deg = theta_deg
+
+
 
 class Vector2d:
     def __init__(self, init_pos: Pose2d, final_pos: Pose2d):
@@ -119,8 +125,8 @@ class Robot:
         self.r_motor.brake()
 
     def align_abs(self, target_angle_deg):
-        print("aligning to angle", target_angle_deg)
         target_angle_deg = round(target_angle_deg)
+        print("aligning to angle", target_angle_deg)
         while self.pos.theta_deg != target_angle_deg:
             self.update_pos()
             self.l_motor.run(-round(MIN_SPEED * copysign(1,difference_deg(target_angle_deg, self.pos.theta_deg))))
@@ -144,7 +150,19 @@ class Robot:
         print("finished turning")
 
         self.print_all()
-        
+    def turn_abs_max(self,target_angle_deg):
+        target_angle_deg = round(target_angle_deg)
+        print("turning to", target_angle_deg)
+        while abs(difference_deg(target_angle_deg,self.pos.theta_deg)) > 5:
+            self.update_pos()
+            turn_speed = round(TURN_SPEED_MAX * copysign(1,difference_deg(self.pos.theta_deg,target_angle_deg)))
+            self.l_motor.run(turn_speed)
+            self.r_motor.run(-turn_speed)
+            wait(DT)
+        self.stop()
+        print("finished turning")
+
+        self.print_all()
 
     def turn_rel(self, target_angle_deg, speed):
         self.start_angle_deg = self.pos.theta_deg
@@ -154,8 +172,8 @@ class Robot:
     def drive_abs(self, target_pose: Pose2d, speed):
         print("driving to", target_pose.x_cm, target_pose.y_cm)
         distance = Vector2d(self.pos, target_pose)
-        initial_distance = distance.magnitude
-        pos_neg = copysign(1,cos(difference_deg(distance.angle,self.pos.theta_deg*pi/180)))
+        initial_distance = distance.magnitude #+
+        pos_neg = copysign(1,cos(difference_deg(distance.angle,self.pos.theta_deg*pi/180))) #+-
         self.turn_abs(minimum_turn_angle_abs(distance.angle*180/pi,self.pos.theta_deg),TURN_SPEED)
         if pos_neg==1:
             print("forward")
@@ -164,20 +182,37 @@ class Robot:
         while distance.magnitude>5:
             self.update_pos()
             distance = Vector2d(self.pos, target_pose)
-            avg_encoder_value_pos = abs(initial_distance-distance.magnitude)
-            position_ratio = avg_encoder_value_pos / (distance.magnitude * self.wheel_circ)
-            drive_speed_ratio = 1 - ((2 * position_ratio - 1) ** 6)
-            drive_speed = pos_neg * speed * (drive_speed_ratio + 0.2)
+            pos_neg = copysign(1,cos(difference_deg(distance.angle,self.pos.theta_deg*pi/180))) #+-
+            avg_encoder_value_pos = abs(initial_distance-distance.magnitude) #+
+            position_ratio = avg_encoder_value_pos / (distance.magnitude * self.wheel_circ) #+
+            drive_speed_ratio = 1 - ((2 * position_ratio - 1) ** 6) #+
+            drive_speed = pos_neg * speed * (drive_speed_ratio + 0.2) #+-
             angle_error_deg = minimum_turn_angle(distance.angle*180/pi,self.pos.theta_deg)
             if abs(self.speed) < 20:
-                self.l_motor.run(drive_speed - angle_error_deg * 5)
-                self.r_motor.run(drive_speed + angle_error_deg * 5)
-            elif distance.magnitude < 10:
                 self.l_motor.run(drive_speed - angle_error_deg * 5)
                 self.r_motor.run(drive_speed + angle_error_deg * 5)
             else:
                 self.l_motor.run(pos_neg * 1.1 * speed - angle_error_deg * 5)
                 self.r_motor.run(pos_neg * 1.1 * speed + angle_error_deg * 5)
+            wait(DT)
+        self.stop()
+        self.print_all()
+        print("finished driving")
+    def drive_abs_max(self, target_pose: Pose2d):
+        print("driving to", target_pose.x_cm, target_pose.y_cm)
+        distance = Vector2d(self.pos, target_pose)
+        pos_neg = copysign(1,cos(difference_deg(distance.angle,self.pos.theta_deg*pi/180))) #+-
+        if pos_neg==1:
+            print("forward")
+        else:
+            print("backward")
+        while distance.magnitude>5:
+            self.update_pos()
+            distance = Vector2d(self.pos, target_pose)
+            pos_neg = copysign(1,cos(difference_deg(distance.angle,self.pos.theta_deg*pi/180))) #+-
+            angle_error_deg = minimum_turn_angle(distance.angle*180/pi,self.pos.theta_deg)
+            self.l_motor.run(pos_neg * DRIVE_SPEED_MAX - angle_error_deg * 5)
+            self.r_motor.run(pos_neg * DRIVE_SPEED_MAX + angle_error_deg * 5)
             wait(DT)
         self.stop()
         self.print_all()
@@ -188,9 +223,10 @@ class Robot:
         print("final align")
         target_pose = Pose2d(x,y,0)
         distance = Vector2d(self.pos, target_pose)
-        self.turn_abs(distance.angle*180/pi, TURN_SPEED)
-        self.align_abs(distance.angle*180/pi)
-        self.align_abs(distance.angle*180/pi)
+        angle = minimum_turn_angle_abs(distance.angle*180/pi,self.pos.theta_deg)
+        self.turn_abs(angle, TURN_SPEED)
+        self.align_abs(angle)
+        self.align_abs(angle)
         pos_neg = copysign(1,cos(difference_deg(distance.angle,self.pos.theta_deg*pi/180)))
         while distance.magnitude>1:
             self.update_pos()
@@ -199,7 +235,7 @@ class Robot:
             self.l_motor.run(round(MIN_SPEED*2*pos_neg))
             self.r_motor.run(round(MIN_SPEED*2*pos_neg))
             wait(DT)
-        while distance.magnitude>0.05:
+        while distance.magnitude>0.1:
             self.update_pos()
             distance = Vector2d(self.pos, target_pose)
             pos_neg = copysign(1,cos(difference_deg(distance.angle,self.pos.theta_deg*pi/180)))
@@ -260,8 +296,24 @@ class Robot:
         self.drive_to(-side_length_cm, 0, speed)
         self.drive_to(0, 0, speed)
         self.final_drive_align(0,0)
-    def square_abs_back(self,side_length_cm, speed):
-        self.drive_to(-side_length_cm, 0, speed)
+    def there_and_back(self,x,y,speed):
+        self.drive_to(x,y,speed)
+        self.drive_to(0,0,speed)
+        self.final_drive_align(0,0)
+    def drive_randomly(self,min_x,max_x,min_y,max_y,number_iterations,speed):
+        for _ in range(number_iterations-1):
+            x = random.uniform(min_x, max_x)
+            y = random.uniform(min_y, max_y)
+            self.drive_abs(Pose2d(x,y,0),speed)
+        self.drive_to(0,0,speed)
+        self.final_drive_align(0,0)
+    def drive_randomly_max(self,min_x,max_x,min_y,max_y,number_iterations,speed):
+        for _ in range(number_iterations-1):
+            x = random.uniform(min_x, max_x)
+            y = random.uniform(min_y, max_y)
+            self.drive_abs_max(Pose2d(x,y,0),speed)
+        self.drive_abs_max(Pose2d(x,y,0),speed)
+        self.final_drive_align(0,0)
 
 def run_track(robot2:Robot):
     robot2.drive_to(77, 0, DRIVE_SPEED)
@@ -274,6 +326,7 @@ def run_track(robot2:Robot):
     robot2.drive_to(100, -50, DRIVE_SPEED)
     robot2.drive_to(177, -100, DRIVE_SPEED)
     robot2.drive_to(177, 50, DRIVE_SPEED)
+    robot2.final_drive_align(177,50)
 
 
 # --- SETUP & CONSTANTS ---
@@ -288,10 +341,12 @@ right_motor = Motor(Port.D)
 gyro_sensor = GyroSensor(Port.S1)
 
 MIN_SPEED = 10
-DRIVE_SPEED = 200 #mm/s
-TURN_SPEED = 250 #mm/s
+DRIVE_SPEED = 400 #mm/s
+DRIVE_SPEED_MAX = 400 #mm/s
+TURN_SPEED = 250 # mm/s
+TURN_SPEED_MAX = 400 # mm/s
 # Robot Physical Constants (mm)
-WHEEL_DIAMETER_MM = 66.5 # Approx EV3 standard, adjust as needed (orig was 20.9cm circ -> ~66.5mm diam)
+WHEEL_DIAMETER_MM = 58.69 # Approx EV3 standard, adjust as needed (orig was 20.9cm circ -> ~66.5mm diam)
 AXLE_TRACK_MM = 144
 
 # Initialize
@@ -310,5 +365,6 @@ print("Go.")
 #robot.drive_to(100,100,DRIVE_SPEED)
 #robot.final_drive_align(100,100)
 print("Done")
-robot.square_abs(50,DRIVE_SPEED)
+# robot.square_abs(50,DRIVE_SPEED)
+run_track(robot)
 # run_Track(robot)
