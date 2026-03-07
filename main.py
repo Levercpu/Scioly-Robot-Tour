@@ -19,7 +19,7 @@ timer = StopWatch()
 #constants
 wheel_circum = 20.9 #cm
 min_speed = 10 #mm/s
-drive_speed = 500 #mm/s
+drive_speed = 750 #mm/s
 turn_speed = 250 #mm/s
 
 
@@ -67,7 +67,7 @@ def turn(degrees, speed):
     align_angle(degrees)
     align_angle(degrees)
     
-    wait(100)
+    wait(50)
 
     print(str(gyro_sensor.angle()) + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed()))
     print(timer.time())
@@ -106,7 +106,7 @@ def drive(distance, speed):
     align_angle(0)
     align_angle(0)
 
-    wait(100)
+    wait(50)
 
     print(str(gyro_sensor.angle()) + " LEFT: " + str(left_motor.speed()) + " RIGHT: " + str(right_motor.speed()))
     print(timer.time())
@@ -261,3 +261,5 @@ def harvard_track(drive_speed = 750, turn_speed = 250):
     turn(-90, turn_speed)
     drive(50, drive_speed)
     #reached end point
+
+rulebook_track(drive_speed, turn_speed)
