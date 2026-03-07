@@ -179,19 +179,19 @@ class Robot:
             print("forward")
         else:
             print("backward")
-        while distance.magnitude>5:
+        while distance.magnitude>1:
             self.update_pos()
             distance = Vector2d(self.pos, target_pose)
             pos_neg = copysign(1,cos(difference_deg(distance.angle,self.pos.theta_deg*pi/180))) #+-
             avg_encoder_value_pos = abs(initial_distance-distance.magnitude) #+
-            position_ratio = avg_encoder_value_pos / (distance.magnitude * self.wheel_circ) #+
+            position_ratio = avg_encoder_value_pos / (distance.magnitude) #+
             drive_speed_ratio = 1 - ((2 * position_ratio - 1) ** 6) #+
-            drive_speed = pos_neg * speed * (drive_speed_ratio + 0.2) #+-
+            drive_speed = pos_neg * (max(speed-MIN_SPEED*10,0) * (drive_speed_ratio)+MIN_SPEED*10)#+-
             angle_error_deg = minimum_turn_angle(distance.angle*180/pi,self.pos.theta_deg)
-            if abs(self.speed) < 20:
+            if abs(self.speed) < 20 or distance.magnitude<10:
                 self.l_motor.run(drive_speed - angle_error_deg * 5)
                 self.r_motor.run(drive_speed + angle_error_deg * 5)
-            else:
+            elif (distance.magnitude>10):
                 self.l_motor.run(pos_neg * 1.1 * speed - angle_error_deg * 5)
                 self.r_motor.run(pos_neg * 1.1 * speed + angle_error_deg * 5)
             wait(DT)
@@ -316,17 +316,35 @@ class Robot:
         self.final_drive_align(0,0)
 
 def run_track(robot2:Robot):
-    robot2.drive_to(77, 0, DRIVE_SPEED)
-    robot2.drive_to(27, 100, DRIVE_SPEED)
-    robot2.drive_to(77, 0, DRIVE_SPEED)
-    robot2.drive_to(27, -100, DRIVE_SPEED)
-    robot2.drive_to(77, -100, DRIVE_SPEED)
-    robot2.drive_to(27, -100, DRIVE_SPEED)
+    robot2.drive_to(100, 0, DRIVE_SPEED)
+    robot2.drive_to(25, 75, DRIVE_SPEED)
+    robot2.drive_to(75, 0, DRIVE_SPEED)
+    robot2.drive_to(25, -100, DRIVE_SPEED)
+    robot2.drive_to(75, -100, DRIVE_SPEED)
+    robot2.drive_to(25, -100, DRIVE_SPEED)
     robot2.drive_to(50, -50, DRIVE_SPEED)
     robot2.drive_to(100, -50, DRIVE_SPEED)
-    robot2.drive_to(177, -100, DRIVE_SPEED)
-    robot2.drive_to(177, 50, DRIVE_SPEED)
-    robot2.final_drive_align(177,50)
+    robot2.drive_to(175, -100, DRIVE_SPEED)
+    robot2.drive_to(175, 50, DRIVE_SPEED)
+    robot2.final_drive_align(175,50)
+    
+def run_track2(robot2:Robot):
+    robot2.drive_to(75, 0, DRIVE_SPEED)
+    robot2.drive_to(75, 50, DRIVE_SPEED)
+    robot2.drive_to(25, 50, DRIVE_SPEED)
+    robot2.drive_to(25, 100, DRIVE_SPEED)
+    robot2.drive_to(25, 50, DRIVE_SPEED)
+    robot2.drive_to(75, 50, DRIVE_SPEED)
+    robot2.drive_to(75, -50, DRIVE_SPEED)
+    robot2.drive_to(25, -50, DRIVE_SPEED)
+    robot2.drive_to(25, -100, DRIVE_SPEED)                    
+    robot2.drive_to(75, -100, DRIVE_SPEED)  
+    robot2.drive_to(25, -100, DRIVE_SPEED)  
+    robot2.drive_to(25, -50, DRIVE_SPEED)
+    robot2.drive_to(175, -50, DRIVE_SPEED)
+    robot2.drive_to(175, -100, DRIVE_SPEED)
+    robot2.drive_to(175, 50, DRIVE_SPEED)
+    robot2.final_drive_align(175, 50)         
 
 
 # --- SETUP & CONSTANTS ---
@@ -346,7 +364,7 @@ DRIVE_SPEED_MAX = 400 #mm/s
 TURN_SPEED = 250 # mm/s
 TURN_SPEED_MAX = 400 # mm/s
 # Robot Physical Constants (mm)
-WHEEL_DIAMETER_MM = 58.69 # Approx EV3 standard, adjust as needed (orig was 20.9cm circ -> ~66.5mm diam)
+WHEEL_DIAMETER_MM = 59.72 # Approx EV3 standard, adjust as needed (orig was 20.9cm circ -> ~66.5mm diam)
 AXLE_TRACK_MM = 144
 
 # Initialize
@@ -366,5 +384,7 @@ print("Go.")
 #robot.final_drive_align(100,100)
 print("Done")
 # robot.square_abs(50,DRIVE_SPEED)
-run_track(robot)
+# robot.drive_to(1000,0,DRIVE_SPEED)
+# robot.final_drive_align(1000,0)
+run_track2(robot)
 # run_Track(robot)
